@@ -1,0 +1,1583 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>嘘つき大富豪 FX</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Shippori+Mincho+B1:wght@700;800&family=Zen+Kaku+Gothic+New:wght@400;700&display=swap">
+<style>
+/* Layout: opponents' seats across the top rail, oxblood felt in the middle with the ledger beside it, your hand on the bottom rail */
+:root{
+  --bg:#150d10;
+  --rail:#271519;
+  --rail-2:#331c21;
+  --felt:#5a1d27;
+  --felt-deep:#2a0c12;
+  --brass:#d4ab54;
+  --brass-dim:#8b6c32;
+  --ink:#f2e8d4;
+  --muted:#b49f8b;
+  --paper:#f6eedd;
+  --paper-edge:#d6c6a3;
+  --suit-red:#b3262d;
+  --suit-black:#1e1b22;
+  --ok:#8cc58f;
+  --ng:#ee6b4d;
+  --on-brass:#1d1109;
+  --f-display:'Dela Gothic One','Hiragino Kaku Gothic StdN','Yu Gothic',sans-serif;
+  --f-body:'Zen Kaku Gothic New','Hiragino Sans','Yu Gothic',sans-serif;
+  --f-card:'Shippori Mincho B1','Hiragino Mincho ProN','Yu Mincho',serif;
+  --cw:clamp(42px,8.4vw,68px);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:14px;line-height:1.5}
+button,input{font:inherit;color:inherit}
+.app{min-height:100%;max-width:1180px;margin:0 auto;display:grid;grid-template-rows:auto auto 1fr auto;gap:12px;
+  padding-block:12px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+.bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.bar h1{font-family:var(--f-display);font-weight:400;font-size:22px;margin:0;letter-spacing:.04em;color:var(--brass)}
+.bar .sub{color:var(--muted);font-size:12px}
+.bar .sp{flex:1}
+.btn{border:1px solid var(--brass-dim);background:transparent;border-radius:8px;padding:7px 14px;font-weight:700;cursor:pointer}
+.btn:hover:not(:disabled){border-color:var(--brass)}
+.btn.primary{background:var(--brass);border-color:var(--brass);color:var(--on-brass)}
+.btn.danger{background:var(--ng);border-color:var(--ng);color:var(--on-brass)}
+.btn:disabled{opacity:.35;cursor:default}
+:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+
+.seats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.seat{position:relative;background:var(--rail);border:1px solid transparent;border-radius:12px;padding:10px 12px;display:grid;gap:6px;min-width:0}
+.seat.turn{border-color:var(--brass);box-shadow:0 0 0 3px rgba(212,171,84,.15)}
+.seat.gone{opacity:.55}
+.who{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;min-width:0}
+.nm{font-weight:700;font-size:15px;overflow-wrap:anywhere}
+.kind{font-size:11px;color:var(--muted);border:1px solid var(--brass-dim);border-radius:10px;padding:0 6px}
+.lives{letter-spacing:2px;font-size:14px;color:var(--ng)}
+.lives .e{color:var(--brass-dim)}
+.mini{display:flex;align-items:center;gap:8px}
+.fan{display:flex}
+.fan i{width:14px;height:20px;border-radius:3px;background:var(--felt-deep);border:1px solid var(--brass-dim);margin-right:-7px;display:block}
+.cnt{font-variant-numeric:tabular-nums;color:var(--muted);font-size:13px;margin-left:8px}
+.tag{font-size:12px;color:var(--muted);min-height:18px}
+.tag b{color:var(--brass);font-weight:700}
+.bubble{position:absolute;right:10px;top:-10px;background:var(--paper);color:var(--suit-black);font-weight:700;font-size:13px;padding:2px 10px;border-radius:12px;animation:pop .25s ease-out;white-space:nowrap}
+.bubble.hot{background:var(--ng);color:var(--on-brass)}
+
+.table{display:grid;grid-template-columns:minmax(0,1fr) 270px;gap:12px;min-height:0}
+.felt{position:relative;border-radius:26px;border:6px solid var(--rail-2);background:radial-gradient(ellipse at 50% 40%,var(--felt) 0%,var(--felt-deep) 78%);
+  min-height:260px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:18px 14px;overflow:hidden}
+.chips{position:absolute;top:12px;left:14px;right:14px;display:flex;gap:6px;flex-wrap:wrap}
+.chip{font-size:12px;padding:2px 10px;border-radius:20px;border:1px solid var(--brass-dim);color:var(--muted)}
+.chip.on{background:var(--brass);color:var(--on-brass);border-color:var(--brass);font-weight:700}
+.prev{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;font-size:12px;color:var(--muted);min-height:20px;margin-top:22px}
+.prev span{background:rgba(0,0,0,.25);border-radius:6px;padding:1px 8px}
+.topplay{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;min-height:calc(var(--cw)*1.4)}
+.topplay.fresh .card{animation:slam .5s cubic-bezier(.2,1.5,.4,1) both}
+.topplay.fresh .card:nth-child(2){animation-delay:.06s}
+.topplay.fresh .card:nth-child(3){animation-delay:.12s}
+.topplay.fresh .card:nth-child(4){animation-delay:.18s}
+.topplay .card.back{box-shadow:0 0 18px rgba(176,92,255,.35),0 2px 0 rgba(0,0,0,.35)}
+.empty{color:var(--muted);font-size:13px;align-self:center;text-align:center}
+.plate{font-size:14px;text-align:center;background:rgba(0,0,0,.3);border-radius:10px;padding:4px 14px}
+.plate .dc{font-family:var(--f-card);font-weight:800;font-size:20px;color:var(--brass);margin:0 2px}
+.stamp{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-8deg);font-family:var(--f-display);font-size:clamp(34px,7vw,60px);
+  padding:4px 22px;border:5px solid currentColor;border-radius:12px;background:rgba(21,13,16,.82);white-space:nowrap;animation:stamp .35s cubic-bezier(.2,1.6,.4,1);z-index:5}
+.stamp.doubt{color:var(--brass)}
+.stamp.lie{color:var(--ng)}
+.stamp.truth{color:var(--ok)}
+.stamp.info{color:var(--ink);font-size:clamp(26px,5vw,40px)}
+
+.log{background:var(--rail);border-radius:12px;padding:10px 12px;overflow:auto;max-height:360px;font-size:12.5px;min-width:0}
+.log h2{font-size:12px;letter-spacing:.12em;color:var(--muted);margin:0 0 6px;font-weight:700}
+.log ol{list-style:none;margin:0;padding:0;display:grid;gap:3px}
+.log li{border-bottom:1px solid rgba(255,255,255,.05);padding-bottom:3px;color:var(--muted);overflow-wrap:anywhere}
+.log li:first-child{color:var(--ink)}
+.log li.priv{color:var(--brass)}
+.log b{color:var(--ink)}
+
+.me{background:var(--rail);border-radius:14px;padding:12px;display:grid;gap:10px;position:relative;border:1px solid transparent}
+.me.turn{border-color:var(--brass)}
+.mehead{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.prompt{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;background:var(--rail-2);border-radius:10px;padding:10px 12px}
+.prompt .msg{flex:1 1 260px;min-width:0}
+.prompt .msg small{display:block;color:var(--muted)}
+.prompt .acts{display:flex;gap:8px;flex-wrap:wrap}
+.warn{color:var(--ng)}
+.good{color:var(--ok)}
+.decls{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+.decls .lbl{font-size:12px;color:var(--muted);margin-right:4px}
+.dk{min-width:38px;padding:5px 7px;border-radius:7px;border:1px solid var(--brass-dim);background:transparent;font-family:var(--f-card);font-weight:800;font-size:15px;cursor:pointer}
+.dk.on{background:var(--brass);color:var(--on-brass);border-color:var(--brass)}
+.dk:disabled{opacity:.25;cursor:default}
+.hand{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;padding-top:30px;min-height:calc(var(--cw)*1.4 + 30px)}
+.hand-item{position:relative;display:flex;flex-direction:column;align-items:center;transition:transform .15s}
+.hand-item.sel,.hand-item.ex{transform:translateY(-14px)}
+.hand-item.inplay{opacity:.3}
+.hc{padding:0;border:0;background:none;border-radius:8px;cursor:pointer;position:relative;display:block}
+.hc:disabled{cursor:default}
+.sel .card,.ex .card{outline:2px solid var(--brass);outline-offset:2px}
+.ex .card{outline-color:var(--ng)}
+.flip{position:absolute;top:-28px;font-size:12px;font-weight:700;border-radius:6px;padding:1px 8px;border:1px solid var(--brass);background:var(--paper);color:var(--suit-black);cursor:pointer;z-index:2}
+.flip.down{background:var(--felt-deep);color:var(--brass)}
+.veil{position:absolute;inset:0;border-radius:7px;display:grid;place-items:center;font-family:var(--f-display);font-size:calc(var(--cw)*.38);color:var(--brass);
+  background:repeating-linear-gradient(45deg,rgba(42,12,18,.82) 0 6px,rgba(70,24,32,.82) 6px 12px)}
+
+.card{width:var(--cw);aspect-ratio:5/7;border-radius:7px;position:relative;flex:none;user-select:none}
+.card.face{background:var(--paper);border:1px solid var(--paper-edge);color:var(--suit-black);box-shadow:0 2px 0 rgba(0,0,0,.35)}
+.card.face.red{color:var(--suit-red)}
+.card .ix{position:absolute;top:4px;left:5px;font-family:var(--f-card);font-weight:800;font-size:calc(var(--cw)*.27);line-height:1;display:flex;flex-direction:column;align-items:center}
+.card .ix i{font-style:normal;font-size:.78em}
+.card .pip{position:absolute;inset:0;display:grid;place-items:center;font-size:calc(var(--cw)*.46);padding-top:14%}
+.card.joker{background:linear-gradient(160deg,var(--paper) 55%,#ecd9a8)}
+.card.joker .pip{color:var(--suit-red)}
+.card.joker .jk{position:absolute;bottom:5px;left:0;right:0;text-align:center;font-family:var(--f-display);font-size:calc(var(--cw)*.15);letter-spacing:.06em}
+.card.back{background:repeating-linear-gradient(45deg,var(--felt-deep) 0 6px,#46182a 6px 12px);border:2px solid var(--brass-dim);box-shadow:0 2px 0 rgba(0,0,0,.35)}
+.card.back::after{content:"";position:absolute;inset:5px;border:1px solid var(--brass-dim);border-radius:4px}
+.card.ok{outline:3px solid var(--ok);outline-offset:2px;animation:flip .45s ease-out}
+.card.ng{outline:3px solid var(--ng);outline-offset:2px;animation:flip .45s ease-out}
+
+.overlay{position:fixed;inset:0;background:rgba(10,5,6,.78);display:grid;place-items:center;z-index:50;
+  padding-block:16px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.sheet{background:var(--rail);border:1px solid var(--brass-dim);border-radius:16px;max-width:600px;width:100%;max-height:88vh;overflow:auto;padding:20px 22px}
+.sheet h2{font-family:var(--f-display);font-weight:400;color:var(--brass);margin:0 0 10px;font-size:22px}
+.sheet h3{font-size:14px;margin:16px 0 6px;color:var(--brass)}
+.sheet ul{margin:0;padding-left:20px;display:grid;gap:3px}
+.sheet p{margin:4px 0}
+.muted{color:var(--muted);font-size:12.5px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0}
+.field{display:grid;gap:4px;margin:8px 0}
+.field label{font-size:12px;color:var(--muted)}
+.inp{background:var(--bg);border:1px solid var(--brass-dim);border-radius:8px;padding:7px 10px;min-width:0;width:12em;max-width:100%}
+.inp:focus{border-color:var(--brass);outline:none}
+.code{font-family:var(--f-display);font-size:28px;letter-spacing:.12em;color:var(--brass)}
+.slots{list-style:none;padding:0;margin:8px 0;display:grid;gap:6px}
+.slots li{background:var(--rail-2);border-radius:8px;padding:6px 12px;display:flex;gap:10px;align-items:center}
+.slots .sn{font-family:var(--f-display);color:var(--brass);width:2.5em}
+#result .sheet{max-width:760px}
+.tblwrap{overflow-x:auto}
+.hsum{border-collapse:collapse;width:100%;font-size:12.5px;font-variant-numeric:tabular-nums}
+.hsum th,.hsum td{padding:5px 8px;border-bottom:1px solid rgba(255,255,255,.08);text-align:right;white-space:nowrap}
+.hsum th:first-child,.hsum td:first-child{text-align:left}
+.hsum th{color:var(--muted);font-weight:700;font-size:11.5px}
+.hsum td.hot{color:var(--ng);font-weight:700}
+.hist{list-style:none;padding:0;margin:8px 0 16px;display:grid;gap:4px;font-size:12.5px}
+.hist li{display:flex;gap:8px;align-items:baseline;background:var(--rail-2);border-radius:8px;padding:5px 10px;border-left:3px solid transparent}
+.hist li.hl-lie{border-left-color:var(--ng)}
+.hist li.hf{background:none;color:var(--muted);justify-content:center;padding:0;font-size:11.5px;letter-spacing:.1em}
+.hn{color:var(--muted);min-width:1.8em;font-variant-numeric:tabular-nums}
+.hb{display:flex;flex-wrap:wrap;gap:4px 6px;align-items:center;min-width:0}
+.cc{background:var(--paper);color:var(--suit-black);border-radius:4px;padding:0 5px;font-weight:700;font-size:12px}
+.cc.r{color:var(--suit-red)}
+.cc.dn{outline:2px dashed var(--brass);outline-offset:1px}
+.cc.bad{background:var(--ng);color:var(--on-brass)}
+.bdg{font-size:11px;border-radius:10px;padding:0 7px;font-weight:700}
+.bdg.lie{background:var(--ng);color:var(--on-brass)}
+.bdg.ok{border:1px solid var(--ok);color:var(--ok)}
+.dbt{color:var(--brass);font-size:12px}
+.exl{color:var(--muted);font-size:12px}
+.rank{display:grid;gap:8px;margin:10px 0 16px;padding:0;list-style:none}
+.rank li{display:grid;grid-template-columns:56px 1fr auto;gap:10px;align-items:center;background:var(--rail-2);border-radius:10px;padding:8px 12px}
+.rank .pos{font-family:var(--f-display);color:var(--brass);font-size:15px}
+.rank .why{color:var(--muted);font-size:12px}
+
+/* ===== FX layer ===== */
+.fxbadge{font-family:var(--f-display);font-size:12px;background:linear-gradient(90deg,var(--ng),var(--brass));color:var(--on-brass);border-radius:6px;padding:1px 7px;margin-left:6px;vertical-align:middle}
+#fx-canvas{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:54}
+#fx-flash{position:fixed;inset:0;pointer-events:none;z-index:53;background:var(--fc,#fff);opacity:0}
+#fx-flash.on{animation:flash .5s ease-out}
+#fx-cutin{position:fixed;inset:0;pointer-events:none;z-index:55;overflow:hidden}
+.ci{position:absolute;inset:0;display:grid;place-items:center}
+.ci-bar{position:absolute;left:0;right:0;height:9vh;background:#000;animation:barIn .25s ease-out both}
+.ci-bar.t{top:0;transform-origin:top}.ci-bar.b{bottom:0;transform-origin:bottom}
+.ci-small .ci-bar{display:none}
+.ci-band{position:relative;width:130%;padding:18px 0;background:var(--band);box-shadow:0 0 0 3px rgba(0,0,0,.6),0 20px 60px rgba(0,0,0,.6);animation:bandIn .35s cubic-bezier(.2,1.2,.3,1) both;overflow:hidden}
+.ci-small .ci-band{padding:8px 0;width:120%}
+.ci-lines{position:absolute;inset:0;background:repeating-linear-gradient(90deg,rgba(255,255,255,.22) 0 2px,transparent 2px 38px);animation:lines .4s linear infinite;mix-blend-mode:overlay}
+.ci-inner{position:relative;display:flex;align-items:center;justify-content:center;gap:18px;transform:rotate(6deg)}
+.ci-emb{width:64px;height:64px;border-radius:50%;display:grid;place-items:center;font-family:var(--f-display);font-size:30px;background:hsl(var(--h) 45% 28%);color:var(--paper);border:3px solid var(--paper);box-shadow:0 0 20px rgba(0,0,0,.5);animation:embIn .4s .05s cubic-bezier(.2,1.6,.4,1) both;flex:none}
+.ci-small .ci-emb{width:40px;height:40px;font-size:18px}
+.ci-main{font-family:var(--f-display);font-size:clamp(44px,11vw,120px);line-height:1;color:var(--ci-fg,#1d1109);letter-spacing:.06em;text-shadow:3px 3px 0 rgba(255,255,255,.35),-2px -2px 0 rgba(0,0,0,.25);animation:mainIn .45s .05s cubic-bezier(.2,1.5,.4,1) both;white-space:nowrap}
+.ci-small .ci-main{font-size:clamp(28px,6vw,54px)}
+.ci-sub{font-weight:700;font-size:clamp(13px,2.2vw,18px);color:var(--ci-fg,#1d1109);opacity:.85;margin-top:4px}
+.ci.out .ci-band{animation:bandOut .22s ease-in both}
+.ci.out .ci-bar{animation:barOut .22s ease-in both}
+.ci-doubt{--band:linear-gradient(90deg,#2a1a08,#e8bf5c 45%,#fff0b8 50%,#e8bf5c 55%,#2a1a08)}
+.ci-lie{--band:linear-gradient(90deg,#2a0508,#ee4b3a 45%,#ff9a7a 50%,#ee4b3a 55%,#2a0508);--ci-fg:#1b0204}
+.ci-truth{--band:linear-gradient(90deg,#081a0c,#79c47e 45%,#d6ffd8 50%,#79c47e 55%,#081a0c)}
+.ci-cut{--band:linear-gradient(90deg,#111,#f5f0e0 45%,#fff 50%,#f5f0e0 55%,#111)}
+.ci-rev{--band:linear-gradient(90deg,#14051f,#a43cd6 40%,#ee4b3a 60%,#14051f);--ci-fg:#fff3f0}
+.ci-jback{--band:linear-gradient(90deg,#050f22,#4f86e8 45%,#c9dcff 50%,#4f86e8 55%,#050f22)}
+.ci-skip{--band:linear-gradient(90deg,#1b1012,#8b6c32 45%,#d4ab54 50%,#8b6c32 55%,#1b1012)}
+.ci-win{--band:linear-gradient(90deg,#2a1a08,#ffd36a 40%,#fff6cf 50%,#ffd36a 60%,#2a1a08)}
+.ci-out{--band:linear-gradient(90deg,#0a0204,#5c0f18 45%,#9e2330 50%,#5c0f18 55%,#0a0204);--ci-fg:#ffd9d2}
+.ci-start{--band:linear-gradient(90deg,#150d10,#5a1d27 40%,#d4ab54 50%,#5a1d27 60%,#150d10);--ci-fg:#fff1d0}
+.ci-you .ci-band{box-shadow:0 0 0 4px var(--brass),0 0 50px rgba(212,171,84,.7)}
+#fx-toast{position:fixed;left:50%;top:max(14px,env(safe-area-inset-top,0px));transform:translateX(-50%);z-index:56;display:grid;gap:6px;pointer-events:none;justify-items:center}
+.toast{background:var(--brass);color:var(--on-brass);padding:6px 20px;border-radius:20px;box-shadow:0 6px 20px rgba(0,0,0,.5);animation:toast 1.9s ease both;font-family:var(--f-display);letter-spacing:.06em;white-space:nowrap}
+.toast.hot{background:var(--ng)}
+.app.shake-s{animation:shs .45s}
+.app.shake-l{animation:shl .6s}
+.dmg{position:fixed;transform:translate(-50%,-50%);z-index:56;font-family:var(--f-display);font-size:32px;color:var(--ng);text-shadow:0 2px 0 #000,0 0 14px rgba(238,107,77,.7);pointer-events:none;animation:dmg 1.4s ease-out forwards;white-space:nowrap}
+.seat.turn,.me.turn{animation:glow 1.6s ease-in-out infinite}
+.felt.sweep::before{content:"";position:absolute;inset:0;z-index:4;pointer-events:none;background:linear-gradient(100deg,transparent 35%,rgba(255,236,190,.25) 50%,transparent 65%);animation:sweep .8s ease-out both}
+.felt::after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 0%,rgba(255,210,140,.13),transparent 60%);animation:candle 3s ease-in-out infinite}
+.felt{transition:filter .8s,box-shadow .8s}
+body.rev .felt{filter:hue-rotate(-35deg) saturate(1.35);box-shadow:0 0 50px rgba(164,60,214,.35) inset,0 0 30px rgba(238,75,58,.3)}
+body.jb .felt{filter:hue-rotate(160deg) saturate(.8)}
+body.rev.jb .felt{filter:none}
+body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:43;background:radial-gradient(ellipse at 50% 45%,transparent 55%,rgba(0,0,0,.55) 100%);animation:candle 4s ease-in-out infinite}
+/* ending: win / lose */
+#fx-end{position:fixed;inset:0;z-index:57;display:grid;place-items:center;overflow:hidden;cursor:pointer;text-align:center;padding:16px}
+#fx-end.win{background:radial-gradient(circle at 50% 50%,rgba(60,30,8,.6),rgba(10,5,6,.92))}
+#fx-end.lose{background:radial-gradient(circle at 50% 50%,rgba(30,4,8,.75),rgba(0,0,0,.95));animation:desat 1.2s ease both}
+.rays{position:absolute;left:50%;top:50%;width:220vmax;height:220vmax;transform:translate(-50%,-50%);background:repeating-conic-gradient(from 0deg,rgba(255,211,106,.22) 0 9deg,transparent 9deg 18deg);animation:spin 6s linear infinite;mask:radial-gradient(circle,#000 10%,transparent 60%);-webkit-mask:radial-gradient(circle,#000 10%,transparent 60%)}
+.end-stack{position:relative;display:grid;gap:10px;justify-items:center}
+.end-rank{font-family:var(--f-display);font-size:clamp(18px,3vw,26px);color:var(--paper);letter-spacing:.2em;animation:fadeUp .5s .3s both}
+.end-main{font-family:var(--f-display);font-size:clamp(64px,17vw,180px);line-height:1;letter-spacing:.06em;white-space:nowrap}
+.win .end-main{background:linear-gradient(90deg,#ff5f5f,#ffd36a,#7fff9f,#6fc8ff,#d58bff,#ff5f5f);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 6px 0 rgba(0,0,0,.6)) drop-shadow(0 0 30px rgba(255,211,106,.6));animation:winIn .7s cubic-bezier(.2,1.6,.4,1) both,rainbow 1.2s linear infinite}
+.lose .end-main{color:#c9242f;text-shadow:0 4px 0 #000,0 0 30px rgba(201,36,47,.6);animation:loseIn 1s cubic-bezier(.5,0,.75,1.3) both,crack 2s 1s ease-in-out infinite}
+.end-sub{font-weight:700;color:var(--muted);animation:fadeUp .5s .8s both}
+.end-hint{position:absolute;bottom:max(18px,env(safe-area-inset-bottom,0px));left:0;right:0;color:var(--muted);font-size:12px;animation:fadeUp .4s 1.6s both}
+@keyframes flash{0%{opacity:.6}100%{opacity:0}}
+@keyframes barIn{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+@keyframes barOut{to{transform:scaleY(0)}}
+@keyframes bandIn{from{transform:rotate(-6deg) translateX(-110%)}to{transform:rotate(-6deg) translateX(0)}}
+@keyframes bandOut{from{transform:rotate(-6deg)}to{transform:rotate(-6deg) translateX(110%);opacity:.4}}
+@keyframes lines{to{background-position:40px 0}}
+@keyframes mainIn{from{transform:scale(2.4);opacity:0;letter-spacing:.5em}to{transform:none;opacity:1}}
+@keyframes embIn{from{transform:scale(0) rotate(-90deg)}to{transform:none}}
+@keyframes toast{0%{transform:translateY(-20px);opacity:0}12%{transform:none;opacity:1}80%{opacity:1}100%{opacity:0}}
+@keyframes shs{20%{transform:translate(-4px,2px)}40%{transform:translate(4px,-2px)}60%{transform:translate(-3px,1px)}80%{transform:translate(2px,0)}}
+@keyframes shl{10%{transform:translate(-10px,4px) rotate(-.6deg)}25%{transform:translate(9px,-5px) rotate(.5deg)}40%{transform:translate(-7px,3px)}55%{transform:translate(6px,-2px)}70%{transform:translate(-4px,1px)}85%{transform:translate(2px,0)}}
+@keyframes dmg{0%{transform:translate(-50%,-30%) scale(.4);opacity:0}15%{transform:translate(-50%,-50%) scale(1.3);opacity:1}100%{transform:translate(-50%,-170%) scale(1);opacity:0}}
+@keyframes glow{0%,100%{box-shadow:0 0 0 3px rgba(212,171,84,.15)}50%{box-shadow:0 0 0 3px rgba(212,171,84,.5),0 0 26px rgba(212,171,84,.4)}}
+@keyframes slam{0%{transform:translateY(-60px) scale(1.7) rotate(-14deg);opacity:0;filter:brightness(1.8)}60%{opacity:1}100%{transform:none;filter:none}}
+@keyframes sweep{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
+@keyframes candle{0%,100%{opacity:.9}45%{opacity:1}55%{opacity:.8}70%{opacity:.95}}
+@keyframes spin{to{transform:translate(-50%,-50%) rotate(360deg)}}
+@keyframes winIn{0%{transform:scale(4) rotate(-10deg);opacity:0}100%{transform:none;opacity:1}}
+@keyframes rainbow{to{background-position:300% 0}}
+@keyframes loseIn{0%{transform:translateY(-120vh)}70%{transform:translateY(0)}82%{transform:translateY(-14px)}100%{transform:none}}
+@keyframes crack{0%,100%{transform:none}50%{transform:skewX(-3deg) translateX(-2px)}}
+@keyframes desat{from{backdrop-filter:grayscale(0)}to{backdrop-filter:grayscale(1)}}
+@keyframes fadeUp{from{transform:translateY(12px);opacity:0}to{transform:none;opacity:1}}
+@keyframes pop{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes deal{from{transform:translateY(-18px);opacity:0}to{transform:none;opacity:1}}
+@keyframes stamp{from{transform:translate(-50%,-50%) rotate(-8deg) scale(1.8);opacity:0}to{transform:translate(-50%,-50%) rotate(-8deg) scale(1);opacity:1}}
+@keyframes flip{from{transform:rotateY(90deg)}to{transform:none}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media (max-width:760px){
+  .table{grid-template-columns:minmax(0,1fr)}
+  .log{max-height:150px}
+  .seat{padding:8px}
+  .nm{font-size:14px}
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <header class="bar">
+    <h1>嘘つき大富豪<span class="fxbadge">FX</span></h1>
+    <span class="sub" id="mode-label">大富豪 × ダウト</span>
+    <span class="sp"></span>
+    <button class="btn" data-act="sfx" id="btn-sfx">効果音 ON</button>
+    <button class="btn" data-act="rules" id="btn-rules">ルール</button>
+    <button class="btn" data-act="lobby" id="btn-lobby">ロビー</button>
+    <button class="btn" data-act="new" id="btn-new">新しいゲーム</button>
+  </header>
+  <section class="seats" id="seats"></section>
+  <section class="table">
+    <div class="felt" id="felt"></div>
+    <aside class="log" id="log"></aside>
+  </section>
+  <section class="me" id="me"></section>
+</div>
+
+<div class="overlay" id="lobby">
+  <div class="sheet" role="dialog" aria-label="ロビー">
+    <h2>嘘つき大富豪</h2>
+    <p>大富豪のルールで手札を出し切るゲーム。カードは伏せて出せるので、嘘の宣言もできます。見抜いたらダウト。</p>
+    <div class="row">
+      <div class="field"><label for="nick">ニックネーム</label><input class="inp" id="nick" maxlength="10" placeholder="例：たろう"></div>
+      <div class="field"><label for="pcount">人数（テーブルを作る人が決めます）</label>
+        <select class="inp" id="pcount"><option value="4">4人（1人8枚）</option><option value="5">5人（1人8枚）</option><option value="6">6人（1人8枚）</option><option value="7">7人（1人7枚）</option></select></div>
+    </div>
+    <div id="lobby-main">
+      <div class="row"><button class="btn primary" data-act="solo" id="btn-solo">ひとりで遊ぶ（残りはCPU）</button></div>
+      <h3>オンライン対戦</h3>
+      <p class="muted">4〜7人。空いた席はCPUが入ります。テーブルを作ってコードを友達に伝えてください。</p>
+      <p class="muted warn" id="net-status"></p>
+      <div class="row"><button class="btn" data-act="create" id="btn-create">テーブルを作る</button></div>
+      <div class="row"><input class="inp" id="code" maxlength="6" placeholder="テーブルコード" autocomplete="off"><button class="btn" data-act="join" id="btn-join">参加する</button></div>
+    </div>
+    <div id="lobby-table" hidden></div>
+  </div>
+</div>
+
+<div class="overlay" id="rules" hidden>
+  <div class="sheet" role="dialog" aria-label="ルール">
+    <h2>ルール</h2>
+    <p>4〜7人で遊びます。6人までは1人8枚、7人なら1人7枚を配り、残りは使いません。最初のゲームの親は抽選、2戦目からは前のゲームの最下位が親です。手札を先に出し切った人から上位。ライフは各3、0になると敗北です。</p>
+    <h3>強さ</h3>
+    <p>3 &lt; 4 &lt; … &lt; K &lt; A &lt; 2 &lt; JOKER。JOKERの単体出しにはスペードの3だけが勝てます。同じ枚数でしか出せません。</p>
+    <h3>伏せ出しと宣言</h3>
+    <ul>
+      <li>出すカードは1枚ずつ表か伏せかを選べます。出すときは「◯を×枚」と宣言し、ゲームは宣言どおりに処理されます。</li>
+      <li>表のカードは宣言と一致している必要があります。JOKERは何の代わりにもなるので、常に本当扱いです。</li>
+    </ul>
+    <h3>ダウト</h3>
+    <ul>
+      <li>伏せカードを含む出し札には、次の番の人がダウトできます。その人がパスしたら、さらに次の人もダウトできます。5スキップで飛ばされた人もダウトできます。</li>
+      <li>本当だった場合：ダウトした人のライフ −1。ダウトした人の手番は終了し（パス扱い）、次の人に移ります。</li>
+      <li>嘘だった場合：出した人のライフが伏せた枚数だけ減ります。カードは捨てられ、能力は発動せず、場が流れてダウトした人から再開します。7渡し・10捨てで選んだカードは手札に戻ります。</li>
+      <li>伏せカードで上がって嘘がバレたら、最下位に都落ちします。</li>
+    </ul>
+    <h3>能力（ダウトを乗り越えたら発動）</h3>
+    <ul>
+      <li>5スキップ：出した枚数だけ後の人を飛ばす</li>
+      <li>7渡し：出した枚数だけ手札を次の人に渡す（非公開）</li>
+      <li>8切り：場を流して、もう一度自分から。伏せた8切りは、出した人以外の全員に順番にダウトの機会が回ってから発動します</li>
+      <li>10捨て：出した枚数だけ手札を捨てる（非公開）</li>
+      <li>Jバック：場が流れるまで強さが逆転</li>
+      <li>スペ3：JOKER単体に勝ち、場を流す</li>
+      <li>革命：同じ宣言で4枚以上出すと強さが逆転（ゲーム中ずっと）</li>
+    </ul>
+    <p style="margin-top:14px"><button class="btn primary" data-act="close-rules" id="btn-close-rules">閉じる</button></p>
+  </div>
+</div>
+
+<div class="overlay" id="result" hidden>
+  <div class="sheet" role="dialog" aria-label="結果">
+    <h2>結果</h2>
+    <ol class="rank" id="rank"></ol>
+    <div id="histbox"></div>
+    <p class="row"><button class="btn primary" data-act="new" id="btn-again">もう一度</button><button class="btn" data-act="close-result" id="btn-close-result">盤面を見る</button></p>
+  </div>
+</div>
+
+<canvas id="fx-canvas" aria-hidden="true"></canvas>
+<div id="fx-flash" aria-hidden="true"></div>
+<div id="fx-cutin" aria-live="polite"></div>
+<div id="fx-toast" aria-live="polite"></div>
+<div id="fx-end" hidden></div>
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script>
+'use strict';
+const PREFIX='liar-daifugo-v1-';
+const SUIT_CH={S:'♠',H:'♥',D:'♦',C:'♣'};
+const ABORT=Symbol('abort');
+const CPU_NAMES=['ギル','ローザ','ヴォルフ','ミラ','ジン','カーラ'];
+function titleOf(k,n){if(k===0)return '大富豪';if(k===n-1)return '大貧民';if(k===1)return '富豪';if(k===n-2)return '貧民';return '平民';}
+function getCount(){const n=parseInt(document.getElementById('pcount').value,10);return n>=4&&n<=7?n:4;}
+const DECLS=[3,4,5,6,7,8,9,10,11,12,13,14,15].map(v=>({v})).concat([{v:3,spade3:true},{v:16}]);
+const CARD={};
+for(const s of ['S','H','D','C'])for(let r=1;r<=13;r++)CARD[s+r]={id:s+r,suit:s,rank:r};
+CARD.JK={id:'JK',suit:'J',rank:0};
+
+let G=null, UI={mode:'idle'}, MY=0;
+const NET={mode:'solo',peer:null,conn:null,conns:new Map(),lobby:null,hostGone:false,lobbyTimer:null,code:'',nick:'',hostPeer:null,myPeer:null,order:[],seats:[],pid:0,answered:-1,seq:0,bcTimer:null,resultShown:false,started:false,spec:null,unsub:[]};
+
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+async function wait(ms){const t=G.token;await sleep(ms);if(t!==G.token)throw ABORT;}
+async function ask(pr){const t=G.token;const r=await pr;if(t!==G.token)throw ABORT;return r;}
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+const byteLen=s=>new TextEncoder().encode(s).length;
+function cleanNick(s){s=String(s||'').replace(/[\u0000-\u001f\u007f⟦⟧]/g,'').trim().slice(0,10);return s||'プレイヤー';}
+
+/* ---------- cards & rules ---------- */
+function power(c){if(c.suit==='J')return 16;return c.rank===1?14:c.rank===2?15:c.rank;}
+function rankLabel(r){return r===1?'A':r===11?'J':r===12?'Q':r===13?'K':String(r);}
+function vLabel(v){return({11:'J',12:'Q',13:'K',14:'A',15:'2',16:'JOKER'})[v]||String(v);}
+function declLabel(d){return d.spade3?'♠3':vLabel(d.v);}
+function declKey(d){return d.spade3?'S3':String(d.v);}
+function declFromKey(k){return DECLS.find(x=>declKey(x)===k)||{v:3};}
+function cardName(c){return c.suit==='J'?'JOKER':SUIT_CH[c.suit]+rankLabel(c.rank);}
+function matches(c,d){
+  if(c.suit==='J')return true;
+  if(d.v===16)return false;
+  if(d.spade3)return c.suit==='S'&&c.rank===3;
+  return power(c)===d.v;
+}
+function reversed(){return G.revolution!==G.jback;}
+function beats(d,n,top){
+  if(!top)return true;
+  if(n!==top.n)return false;
+  if(top.decl.v===16)return !!d.spade3;
+  if(d.v===16)return true;
+  return reversed()?d.v<top.decl.v:d.v>top.decl.v;
+}
+function declOK(d,n){
+  if(!d||n<1)return false;
+  if((d.v===16||d.spade3)&&n!==1)return false;
+  return beats(d,n,G.top);
+}
+function sortHand(h){h.sort((a,b)=>power(a)-power(b)||'SHDC'.indexOf(a.suit)-'SHDC'.indexOf(b.suit));}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+/* ---------- players ---------- */
+function isActive(i){const P=G.players[i];return P&&!P.finished&&!P.dead&&!P.miyako;}
+function activeList(){return G.players.map((_,i)=>i).filter(isActive);}
+function nextActive(i){const N=G.players.length;for(let k=1;k<=N;k++){const j=(i+k)%N;if(isActive(j))return j;}return -1;}
+function nextActives(p,k){const N=G.players.length,r=[];for(let s=1;s<N&&r.length<k;s++){const j=(p+s)%N;if(isActive(j))r.push(j);}return r;}
+function allOthersPassed(){const t=G.top;return activeList().filter(i=>i!==t.player).every(i=>G.passers.has(i));}
+function removeCards(P,cards){const ids=new Set(cards.map(c=>c.id));P.hand=P.hand.filter(c=>!ids.has(c.id));}
+function speed(){return G.players.some((P,i)=>P.ctrl!=='cpu'&&isActive(i))?650:200;}
+
+/* log lines are plain text; ⟦name⟧ marks a name to bold. `to` = private to one seat */
+function log(text,to){G.logSeq=(G.logSeq||0)+1;G.logs.unshift({text,to,id:G.logSeq});if(G.logs.length>90)G.logs.pop();}
+function say(i,text,hot){G.say[i]={text,hot,t:Date.now()};setTimeout(render,2700);}
+function nm(i){return `⟦${G.players[i].name}⟧`;}
+
+function kill(i){const P=G.players[i];if(P.dead)return;P.dead=true;P.life=0;P.hand=[];G.deadOrder.push(i);log(`${nm(i)} はライフが尽きて敗北`);}
+function flow(msg){if(G.hist&&G.hist.length&&!G.hist[G.hist.length-1].f)G.hist.push({f:1});G.top=null;G.pile=[];G.passers.clear();G.jback=false;if(msg)log(msg);}
+function checkEnd(){
+  if(G.over)return true;
+  const act=activeList();
+  if(act.length>1)return false;
+  G.over=true;G.remaining=act.length?act[0]:null;return true;
+}
+
+/* ---------- game ---------- */
+/* spec: [{name, ctrl:'local'|'remote'|'cpu', peer}] ×4 */
+function newGame(spec,autostart=true,startSeat=-1){
+  const token=(G&&G.token>0?G.token:0)+1;
+  const deck=shuffle(Object.values(CARD).map(c=>c));
+  const per=spec.length>=7?7:8;
+  const players=spec.map((s,i)=>({i,name:s.name,ctrl:s.ctrl,peer:s.peer||null,hand:deck.slice(i*per,i*per+per),life:3,finished:false,dead:false,miyako:false}));
+  players.forEach(p=>sortHand(p.hand));
+  G={token,players,top:null,pile:[],revolution:false,jback:false,current:0,passers:new Set(),finishOrder:[],deadOrder:[],miyakoOrder:[],
+     seen:[],logs:[],over:false,remaining:null,say:{},stamp:null,turn:null,asking:null,pending:null,hist:[],gid:Math.random().toString(36).slice(2,9)};
+  MY=Math.max(0,players.findIndex(p=>p.ctrl==='local'));
+  /* first game: random starter; rematches: last place of the previous game starts */
+  const rematch=typeof startSeat==='number'&&startSeat>=0&&startSeat<spec.length;
+  const start=rematch?startSeat:Math.floor(Math.random()*spec.length);
+  const why=rematch?'前回最下位の':'抽選で';
+  G.current=start;
+  UI={mode:'idle'};NET.resultShown=false;
+  log(`新しいゲーム（${spec.length}人）。各自${per}枚、残り${deck.length-per*spec.length}枚は配られません`);
+  log(`${why}${nm(start)}から開始`);
+  document.getElementById('result').hidden=true;
+  render();
+  if(autostart)gameLoop().catch(e=>{if(e!==ABORT)console.error(e);});
+}
+
+async function gameLoop(){
+  await wait(500);
+  while(true){
+    if(checkEnd())break;
+    const p=G.current;
+    if(p<0||!isActive(p)){G.current=nextActive(p<0?0:p);continue;}
+    if(G.top&&allOthersPassed()){flow('全員パス。場が流れた');G.turn=p;render();await wait(450);}
+    if(G.top&&G.top.doubtable&&G.top.player!==p&&!G.top.offered.has(p)){
+      G.top.offered.add(p);
+      const r=await offerDoubt(p);
+      if(r==='lie')continue;
+      if(checkEnd())break;
+      if(r==='truth'){endTurnAfterFailedDoubt(p);render();continue;}
+      if(!isActive(p)){G.current=nextActive(p);continue;}
+    }
+    G.turn=p;render();
+    const P=G.players[p];
+    let a;
+    if(P.ctrl==='local')a=await localTurn();
+    else if(P.ctrl==='remote')a=await remotePending(p,'play');
+    else{await wait(speed());a=cpuAction(p);}
+    if(a.type==='pass'){
+      G.passers.add(p);say(p,'パス');log(`${nm(p)}: パス`);
+      G.current=nextActive(p);render();await wait(120);
+    }else await doPlay(p,a);
+  }
+  G.turn=null;G.asking=null;G.pending=null;UI={mode:'idle'};render();
+  await wait(600);
+  NET.lastLoser=computeOrder().order.slice(-1)[0];
+  if(!NET.resultShown){NET.resultShown=true;showResult();}
+}
+
+async function doPlay(p,a){
+  const P=G.players[p];
+  removeCards(P,a.cards.map(x=>x.card));
+  removeCards(P,a.extra);
+  const n=a.cards.length;
+  const prev=G.top;
+  const top={player:p,cards:a.cards,decl:a.decl,n,extra:a.extra,offered:new Set(),doubtable:a.cards.some(x=>!x.up),
+             revealed:false,applied:null,finishedHere:false,prevJoker:!!(prev&&prev.decl.v===16)};
+  G.top=top;G.pile.push(top);G.passers.clear();
+  /* full record for the end-of-game log: real cards, face up/down, and whether it was a lie */
+  top.h={p,d:declKey(a.decl),c:a.cards.map(x=>[x.card.id,x.up?1:0]),lie:a.cards.some(x=>!x.up&&!matches(x.card,a.decl))?1:0};
+  G.hist.push(top.h);
+  a.cards.filter(x=>x.up).forEach(x=>G.seen.push(x.card));
+  const fd=a.cards.filter(x=>!x.up).length;
+  log(`${nm(p)}: 「${declLabel(a.decl)}」×${n}${fd?`（伏せ${fd}）`:''}`);
+  say(p,`「${declLabel(a.decl)}」×${n}`);
+  if(P.hand.length===0){P.finished=true;G.finishOrder.push(p);top.finishedHere=true;log(`${nm(p)} が手札を出し切った${fd?'（伏せ札あり・ダウト待ち）':''}`);}
+  render();
+  await wait(450);
+  const skipN=(a.decl.v===5&&!a.decl.spade3)?n:0;
+  const cands=nextActives(p,skipN+1);
+  /* face-down 8-cut: the doubt chance goes round everyone before the cut resolves */
+  const isCut=a.decl.v===8&&!a.decl.spade3;
+  const doubters=isCut?nextActives(p,G.players.length-1):cands;
+  let failedBy=-1;
+  if(top.doubtable){
+    for(const c of doubters){
+      if(!isActive(c))continue;
+      top.offered.add(c);
+      const r=await offerDoubt(c);
+      if(r==='lie')return;
+      if(r==='truth'){failedBy=c;break;}
+    }
+  }
+  if(G.top!==top)return;
+  settle(p,top,skipN,cands);
+  /* failed doubt: the doubter's turn ends (counts as a pass) */
+  if(failedBy>=0&&G.top===top&&G.current===failedBy)endTurnAfterFailedDoubt(failedBy);
+  render();
+}
+
+function endTurnAfterFailedDoubt(d){
+  if(isActive(d)){G.passers.add(d);log(`${nm(d)} はダウト失敗で手番終了`);}
+  const n=nextActive(d);
+  if(n>=0)G.current=n;
+}
+function settle(p,top,skipN,cands){
+  const d=top.decl,n=top.n,ap=top.applied={};
+  if(n>=4){G.revolution=!G.revolution;ap.rev=true;log(`革命！ 強さが${G.revolution?'逆転':'元に戻った'}`);G.stamp={text:'革命',kind:'info'};setTimeout(()=>{if(G.stamp&&G.stamp.text==='革命'){G.stamp=null;render();}},1100);}
+  if(d.v===11&&!d.spade3){G.jback=!G.jback;log(G.jback?'Jバック：場が流れるまで強さが逆転':'Jバック解除');}
+  if(d.v===7&&!d.spade3&&top.extra.length){
+    const to=nextActive(p);
+    if(to>=0&&to!==p){
+      G.players[to].hand.push(...top.extra);sortHand(G.players[to].hand);ap.give={to,cards:top.extra.slice()};
+      if(top.h)top.h.give=[to,top.extra.map(c=>c.id)];
+      log(`7渡し：${nm(p)} → ${nm(to)} に${top.extra.length}枚`);
+      log(`受け取った：${top.extra.map(cardName).join('、')}`,to);
+      log(`渡した：${top.extra.map(cardName).join('、')}`,p);
+    }else{G.players[p].hand.push(...top.extra);top.extra=[];}
+  }
+  if(d.v===10&&!d.spade3&&top.extra.length){
+    ap.discard=top.extra.slice();
+    if(top.h)top.h.disc=top.extra.map(c=>c.id);
+    log(`10捨て：${nm(p)} が${top.extra.length}枚捨てた`);
+    log(`捨てた：${top.extra.map(cardName).join('、')}`,p);
+  }
+  const P=G.players[p];
+  if(!P.finished&&P.hand.length===0&&!P.dead){P.finished=true;G.finishOrder.push(p);top.finishedHere=true;log(`${nm(p)} が手札を出し切った`);}
+  const flush=(d.v===8&&!d.spade3)||(d.spade3&&top.prevJoker);
+  if(flush){
+    flow(d.spade3?'スペ3返し！ 場が流れた':'8切り！ 場が流れた');
+    G.current=isActive(p)?p:nextActive(p);
+    return;
+  }
+  if(skipN){
+    const skipped=cands.slice(0,skipN).filter(isActive);
+    skipped.forEach(i=>G.passers.add(i));
+    if(skipped.length)log(`5スキップ：${skipped.map(nm).join('、')} を飛ばす`);
+    const last=skipped.length?skipped[skipped.length-1]:p;
+    G.current=nextActive(last);
+  }else G.current=nextActive(p);
+  if(G.current<0)G.current=p;
+}
+
+async function offerDoubt(c){
+  const P=G.players[c];
+  G.asking=c;render();
+  let yes;
+  if(P.ctrl==='local'){
+    yes=await ask(new Promise(res=>{UI={mode:'doubt',resolve:res};render();}));
+    UI={mode:'idle'};
+  }else if(P.ctrl==='remote'){
+    yes=await remotePending(c,'doubt');
+  }else{
+    await wait(Math.round(speed()*0.75));
+    yes=cpuDoubt(c);
+  }
+  G.asking=null;
+  if(!yes){render();return 'none';}
+  return await resolveDoubt(c);
+}
+
+async function resolveDoubt(dI){
+  const top=G.top,lI=top.player,D=G.players[dI],L=G.players[lI];
+  const fd=top.cards.filter(x=>!x.up);
+  say(dI,'ダウト！',true);
+  G.stamp={text:'ダウト！',kind:'doubt'};
+  log(`${nm(dI)} が ${nm(lI)} にダウト！`);
+  render();await wait(950);
+  const lie=fd.some(x=>!matches(x.card,top.decl));
+  if(top.h)top.h.db=[dI,lie?1:0];
+  top.revealed=true;G.stamp=null;fd.forEach(x=>G.seen.push(x.card));
+  log(`公開：${fd.map(x=>cardName(x.card)).join('、')}`);
+  render();await wait(1150);
+  if(lie){
+    const loss=fd.length;
+    G.stamp={text:`嘘！ −${loss}`,kind:'lie'};
+    const ap=top.applied;
+    if(ap){
+      if(ap.give){const R=G.players[ap.give.to];removeCards(R,ap.give.cards);L.hand.push(...ap.give.cards);}
+      if(ap.discard)L.hand.push(...ap.discard);
+      if(ap.rev)G.revolution=!G.revolution;
+    }else L.hand.push(...top.extra);
+    sortHand(L.hand);
+    L.life=Math.max(0,L.life-loss);
+    log(`嘘だった！ ${nm(lI)} のライフ −${loss}（残り${L.life}）。出し札は捨て札に`);
+    render();await wait(1400);G.stamp=null;
+    if(top.finishedHere){
+      L.finished=false;G.finishOrder=G.finishOrder.filter(i=>i!==lI);
+      L.miyako=true;L.hand=[];G.miyakoOrder.push(lI);
+      log(`${nm(lI)} は嘘の上がりで最下位に都落ち`);
+    }else if(L.life<=0)kill(lI);
+    flow(null);
+    G.current=dI;
+    log(`場が流れ、${nm(dI)} から再開`);
+    render();
+    return 'lie';
+  }else{
+    G.stamp={text:'本当 −1',kind:'truth'};
+    D.life=Math.max(0,D.life-1);
+    log(`本当だった。${nm(dI)} のライフ −1（残り${D.life}）`);
+    render();await wait(1400);G.stamp=null;
+    top.doubtable=false;
+    if(D.life<=0)kill(dI);
+    render();
+    return 'truth';
+  }
+}
+
+/* ---------- CPU ---------- */
+function keyFn(){const rev=reversed();return v=>v===16?99:(rev?20-v:v);}
+function plausible(P,d,lies){
+  const total=(d.v===16||d.spade3)?1:4;
+  const m=c=>c.suit!=='J'&&matches(c,d);
+  const known=P.hand.filter(m).length+G.seen.filter(m).length;
+  const jAvail=(!P.hand.some(c=>c.suit==='J')&&!G.seen.some(c=>c.suit==='J'))?1:0;
+  return known+lies<=total+jAvail;
+}
+function pickExtra(P,a){
+  const d=a.decl;
+  if(d.spade3||(d.v!==7&&d.v!==10))return [];
+  const used=new Set(a.cards.map(x=>x.card.id));
+  const rest=P.hand.filter(c=>!used.has(c.id));
+  const k=Math.min(a.cards.length,rest.length);
+  if(!k)return [];
+  const key=keyFn();
+  return rest.slice().sort((x,y)=>key(power(x))-key(power(y))).slice(0,k);
+}
+function cpuAction(p){
+  const P=G.players[p],hand=P.hand,top=G.top,key=keyFn();
+  const isJ=c=>c.suit==='J';
+  const jokers=hand.filter(isJ);
+  const groups=new Map();
+  hand.filter(c=>!isJ(c)).forEach(c=>{const v=power(c);if(!groups.has(v))groups.set(v,[]);groups.get(v).push(c);});
+  const opts=[];
+  for(const [v,cs] of groups){
+    const n=top?top.n:cs.length;
+    const useJ=Math.max(0,n-cs.length);
+    if(useJ>jokers.length)continue;
+    const d={v};
+    if(top&&!beats(d,n,top))continue;
+    opts.push({cards:[...cs.slice(0,n-useJ),...jokers.slice(0,useJ)],decl:d,k:key(v)+useJ*30});
+  }
+  if(top&&top.decl.v===16){const s3=hand.find(c=>c.suit==='S'&&c.rank===3);if(s3)opts.push({cards:[s3],decl:{v:3,spade3:true},k:-50});}
+  if(jokers.length&&(!top||(top.n===1&&beats({v:16},1,top))))opts.push({cards:[jokers[0]],decl:{v:16},k:95});
+  opts.sort((a,b)=>a.k-b.k);
+  const bold=[0,0.12,0.35,0.55][P.life]||0.55;
+  const finish=a=>{a.extra=pickExtra(P,a);return a;};
+  const honest=o=>{
+    const cards=o.cards.map(c=>({card:c,up:true}));
+    if(Math.random()<0.28){const k=Math.random()<0.5?cards.length:1;for(let i=0;i<k;i++)cards[i].up=false;}
+    return finish({type:'play',cards,decl:o.decl});
+  };
+  if(!top){
+    if(hand.length>2&&Math.random()<bold*0.45){const b=leadBluff(P,key);if(b)return finish(b);}
+    return honest(opts[0]);
+  }
+  if(opts.length){
+    const o=opts[0];
+    if(o.k>=14&&hand.length>o.cards.length+1){
+      if(Math.random()<bold*0.5){const b=followBluff(P,top,key);if(b)return finish(b);}
+      if(Math.random()<0.3)return {type:'pass'};
+    }
+    return honest(o);
+  }
+  if(Math.random()<bold){const b=followBluff(P,top,key);if(b)return finish(b);}
+  return {type:'pass'};
+}
+function followBluff(P,top,key){
+  const n=top.n;if(P.hand.length<n)return null;
+  let cands=[];
+  if(top.decl.v===16)cands=[{v:3,spade3:true}];
+  else{
+    for(let v=3;v<=15;v++){const d={v};if(beats(d,n,top))cands.push(d);}
+    cands.sort((a,b)=>key(a.v)-key(b.v));
+    if(n===1&&Math.random()<0.12)cands.push({v:16});
+  }
+  const junk=P.hand.filter(c=>c.suit!=='J').sort((a,b)=>key(power(a))-key(power(b)));
+  for(const d of cands.slice(0,5)){
+    if(Math.random()<0.25)continue;
+    const real=P.hand.filter(c=>c.suit!=='J'&&matches(c,d)).slice(0,n-1);
+    const rest=junk.filter(c=>!real.includes(c)&&!matches(c,d)).slice(0,n-real.length);
+    if(real.length+rest.length<n)continue;
+    if(!plausible(P,d,rest.length))continue;
+    return {type:'play',decl:d,cards:[...real.map(c=>({card:c,up:Math.random()<0.7})),...rest.map(c=>({card:c,up:false}))]};
+  }
+  return null;
+}
+function leadBluff(P,key){
+  const nat=P.hand.filter(c=>c.suit!=='J').sort((a,b)=>key(power(a))-key(power(b)));
+  if(nat.length<2)return null;
+  if(Math.random()<0.5){
+    const d={v:8};const c=nat.find(x=>power(x)!==8);
+    if(!c||!plausible(P,d,1))return null;
+    return {type:'play',decl:d,cards:[{card:c,up:false}]};
+  }
+  const w=nat[0],o=nat.find(x=>power(x)!==power(w));
+  if(!o)return null;
+  const d={v:power(w)};
+  if(!plausible(P,d,1))return null;
+  return {type:'play',decl:d,cards:[{card:w,up:Math.random()<0.6},{card:o,up:false}]};
+}
+function cpuDoubt(c){
+  const top=G.top,P=G.players[c],d=top.decl;
+  const fd=top.cards.filter(x=>!x.up).length;
+  const total=(d.v===16||d.spade3)?1:4;
+  const m=x=>x.suit!=='J'&&matches(x,d);
+  const known=P.hand.filter(m).length+G.seen.filter(m).length;
+  const jAvail=(!P.hand.some(x=>x.suit==='J')&&!G.seen.some(x=>x.suit==='J'))?1:0;
+  const avail=total-known+jAvail;
+  if(fd>avail)return true;
+  let pl=0.33+0.1*(fd-1);
+  if(G.players[top.player].hand.length===0)pl+=0.18;
+  if(avail-fd<=0)pl+=0.25;else if(avail-fd===1)pl+=0.1;
+  if(d.v===8||d.v===15||d.v===16||d.spade3)pl+=0.08;
+  pl+=(Math.random()-0.5)*0.25;
+  const ev=pl*fd-(1-pl);
+  const caution=P.life===1?0.5:P.life===2?0.05:-0.15;
+  return ev>caution;
+}
+
+/* ---------- local player ---------- */
+function localTurn(){
+  return ask(new Promise(res=>{UI={mode:'play',sel:new Map(),decl:null,resolve:res,msg:''};render();}));
+}
+function me(){return G.players[MY];}
+function selCards(){return me().hand.filter(c=>UI.sel.has(c.id));}
+function fixDecl(){
+  const cards=selCards(),n=cards.length;
+  if(UI.decl&&!declOK(UI.decl,n))UI.decl=null;
+  if(!UI.decl&&n){
+    let d=null;const nat=cards.filter(c=>c.suit!=='J');
+    if(n===1&&G.top&&G.top.decl.v===16&&nat[0]&&nat[0].suit==='S'&&nat[0].rank===3)d={v:3,spade3:true};
+    else if(nat.length&&nat.every(c=>power(c)===power(nat[0])))d={v:power(nat[0])};
+    else if(!nat.length)d={v:16};
+    if(d&&declOK(d,n))UI.decl=d;
+  }
+  if(UI.decl)for(const c of cards)if(!matches(c,UI.decl))UI.sel.set(c.id,false);
+}
+function onCard(id){
+  const c=me().hand.find(x=>x.id===id);if(!c)return;
+  if(UI.mode==='play'){
+    if(UI.sel.has(id))UI.sel.delete(id);else UI.sel.set(id,UI.decl?matches(c,UI.decl):true);
+    UI.msg='';fixDecl();render();
+  }else if(UI.mode==='extra'){
+    if(UI.playIds.has(id))return;
+    if(UI.ex.has(id))UI.ex.delete(id);else if(UI.ex.size<UI.k)UI.ex.add(id);
+    render();
+  }
+}
+function onFlip(id){
+  if(UI.mode!=='play')return;
+  const c=me().hand.find(x=>x.id===id);if(!c)return;
+  const up=!UI.sel.get(id);
+  if(up&&UI.decl&&!matches(c,UI.decl))UI.msg='宣言と違うカードは表にできません';
+  else{UI.sel.set(id,up);UI.msg='';}
+  render();
+}
+function onDecl(k){
+  if(UI.mode!=='play')return;
+  const d=DECLS.find(x=>declKey(x)===k);
+  if(!declOK(d,UI.sel.size))return;
+  UI.decl=d;UI.msg='';
+  for(const c of selCards())if(!matches(c,d))UI.sel.set(c.id,false);
+  render();
+}
+function onAct(a){
+  if(a==='sfx'){SFX.on=!SFX.on;try{localStorage.setItem('ld-sfx',SFX.on?'on':'off');}catch(e){}sfxLabel();if(SFX.on)sfx('bell');return;}
+  if(a==='rules'){document.getElementById('rules').hidden=false;return;}
+  if(a==='close-rules'){document.getElementById('rules').hidden=true;return;}
+  if(a==='close-result'){document.getElementById('result').hidden=true;return;}
+  if(a==='lobby')return toLobby();
+  if(a==='solo')return startSolo();
+  if(a==='create')return createTable();
+  if(a==='join')return joinTable();
+  if(a==='start')return hostStart();
+  if(a==='leave')return toLobby();
+  if(a==='new'){
+    if(NET.mode==='client')return;
+    if(NET.mode==='host')return hostStart();
+    return startSolo(true);
+  }
+  if(UI.mode==='doubt'&&(a==='doubt-yes'||a==='doubt-no')){const r=UI.resolve;UI={mode:'idle'};r(a==='doubt-yes');render();return;}
+  if(UI.mode==='play'){
+    if(a==='pass'){if(!G.top)return;const r=UI.resolve;UI={mode:'idle'};r({type:'pass'});render();return;}
+    if(a==='play'){
+      const cards=selCards(),n=cards.length,d=UI.decl;
+      if(!declOK(d,n))return;
+      const play=cards.map(c=>({card:c,up:UI.sel.get(c.id)}));
+      if(play.some(x=>x.up&&!matches(x.card,d)))return;
+      const rest=me().hand.length-n;
+      if(!d.spade3&&(d.v===7||d.v===10)&&rest>0){
+        UI={...UI,mode:'extra',play,decl:d,k:Math.min(n,rest),ex:new Set(),playIds:new Set(cards.map(c=>c.id))};
+        render();return;
+      }
+      const r=UI.resolve;UI={mode:'idle'};r({type:'play',cards:play,decl:d,extra:[]});render();return;
+    }
+  }
+  if(UI.mode==='extra'){
+    if(a==='extra-back'){UI.mode='play';render();return;}
+    if(a==='extra-ok'&&UI.ex.size===UI.k){
+      const extra=me().hand.filter(c=>UI.ex.has(c.id));
+      const r=UI.resolve,play=UI.play,d=UI.decl;UI={mode:'idle'};
+      r({type:'play',cards:play,decl:d,extra});render();
+    }
+  }
+}
+document.addEventListener('click',e=>{
+  const t=e.target.closest('[data-card],[data-flip],[data-decl],[data-act]');
+  if(!t||t.disabled)return;
+  if(t.dataset.flip)return onFlip(t.dataset.flip);
+  if(t.dataset.card)return onCard(t.dataset.card);
+  if(t.dataset.decl)return onDecl(t.dataset.decl);
+  onAct(t.dataset.act);
+});
+document.getElementById('code').addEventListener('keydown',e=>{if(e.key==='Enter')joinTable();});
+
+/* ---------- render ---------- */
+function faceHTML(c,cls=''){
+  if(c.suit==='J')return `<div class="card face joker ${cls}"><span class="ix">JK</span><span class="pip">★</span><span class="jk">JOKER</span></div>`;
+  const red=c.suit==='H'||c.suit==='D';
+  return `<div class="card face ${red?'red':''} ${cls}"><span class="ix">${rankLabel(c.rank)}<i>${SUIT_CH[c.suit]}</i></span><span class="pip">${SUIT_CH[c.suit]}</span></div>`;
+}
+const backHTML=()=>`<div class="card back"></div>`;
+function livesHTML(l){let s='';for(let i=0;i<3;i++)s+=i<l?'♥':'<span class="e">♡</span>';return `<span class="lives" aria-label="ライフ${l}">${s}</span>`;}
+function logHTML(t){return esc(t).replace(/⟦(.*?)⟧/g,'<b>$1</b>');}
+function statusOf(i){
+  const P=G.players[i];
+  if(P.finished)return `<b>${G.finishOrder.indexOf(i)+1}位で上がり</b>`;
+  if(P.miyako)return '<b>都落ち</b>';
+  if(P.dead)return 'ライフ切れで敗北';
+  if(G.asking===i)return 'ダウトするか考え中…';
+  if(G.turn===i)return '<b>手番</b>';
+  return '';
+}
+function bubbleHTML(i){const s=G.say[i];if(!s||Date.now()-s.t>2500)return '';return `<span class="bubble ${s.hot?'hot':''}">${esc(s.text)}</span>`;}
+function kindHTML(P){return NET.mode==='solo'?'':`<span class="kind">${P.ctrl==='cpu'?'CPU':'人'}</span>`;}
+
+function render(){
+  if(!G)return;
+  const NP=G.players.length;
+  const seats=Array.from({length:NP-1},(_,j)=>j+1).map(k=>{
+    const i=(MY+k)%NP,P=G.players[i];
+    const gone=P.finished||P.dead||P.miyako;
+    const fan=Array.from({length:Math.min(P.hand.length,8)},()=>'<i></i>').join('');
+    return `<div class="seat ${G.turn===i||G.asking===i?'turn':''} ${gone?'gone':''}" data-seat="${i}">
+      ${bubbleHTML(i)}
+      <div class="who"><span class="nm">${esc(P.name)}</span>${kindHTML(P)}${livesHTML(P.life)}</div>
+      <div class="mini"><span class="fan">${fan}</span><span class="cnt">手札 ${P.hand.length}</span></div>
+      <div class="tag">${statusOf(i)}</div></div>`;
+  }).join('');
+  document.getElementById('seats').innerHTML=seats;
+
+  const top=G.top;
+  let felt=`<div class="chips">
+    <span class="chip ${G.revolution?'on':''}">革命</span>
+    <span class="chip ${G.jback?'on':''}">Jバック</span>
+    <span class="chip">${reversed()?'強さ逆転中：3が最強':'通常：2が最強'}</span>
+    ${top?`<span class="chip">場：${top.n}枚出し</span>`:''}</div>`;
+  felt+=`<div class="prev">${G.pile.slice(-5,-1).map(t=>`<span>${esc(G.players[t.player].name)}「${declLabel(t.decl)}」×${t.n}</span>`).join('')}</div>`;
+  if(top){
+    const cards=top.cards.map(x=>{
+      if(x.up&&x.card)return faceHTML(x.card);
+      if(top.revealed&&x.card)return faceHTML(x.card,matches(x.card,top.decl)?'ok':'ng');
+      return backHTML();
+    }).join('');
+    const fd=top.cards.filter(x=>!x.up).length;
+    const tk=`${G.gid}|${top.player}|${declKey(top.decl)}|${top.n}|${G.pile.length}`;
+    const fresh=tk!==FX.topKey;FX.topKey=tk;
+    felt+=`<div class="topplay ${fresh?'fresh':''}">${cards}</div>
+      <div class="plate">${esc(G.players[top.player].name)}　宣言<span class="dc">「${declLabel(top.decl)}」</span>×${top.n}${fd?`　伏せ${fd}`:''}${top.revealed?'　公開済み':''}</div>`;
+  }else{
+    felt+=`<div class="topplay"><span class="empty">${G.over?'ゲーム終了':'場は空です。親は好きなカードから出せます'}</span></div>`;
+  }
+  if(G.stamp){const k=['doubt','lie','truth','info'].includes(G.stamp.kind)?G.stamp.kind:'info';felt+=`<div class="stamp ${k}">${esc(G.stamp.text)}</div>`;}
+  document.getElementById('felt').innerHTML=felt;
+
+  const logs=G.logs.filter(l=>l.to===undefined||l.to===null||l.to===MY);
+  document.getElementById('log').innerHTML=`<h2>進行ログ</h2><ol>${logs.map(l=>`<li class="${l.to===MY?'priv':''}">${logHTML(l.text)}</li>`).join('')}</ol>`;
+
+  renderMe();
+  document.getElementById('btn-new').hidden=NET.mode==='client';
+  document.getElementById('btn-again').hidden=NET.mode==='client';
+  document.getElementById('mode-label').textContent=NET.mode==='solo'?'ひとりで遊ぶ（CPU 3人）':NET.mode==='host'?`オンライン：テーブル ${NET.code}（ホスト）`:`オンライン：テーブル ${NET.code}`;
+  if(NET.mode==='host')scheduleBroadcast();
+  fxAfterRender();
+}
+
+function renderMe(){
+  const P=me();
+  const el=document.getElementById('me');
+  el.className='me'+((G.turn===MY||G.asking===MY)&&!G.over?' turn':'');
+  el.dataset.seat=MY;
+  let msg='',acts='',decls='';
+  const top=G.top;
+  if(UI.mode==='doubt'&&top){
+    const fd=top.cards.filter(x=>!x.up).length;
+    const L=G.players[top.player];
+    msg=`<b>${esc(L.name)}</b>が「${declLabel(top.decl)}」×${top.n}（伏せ${fd}枚）を出しました。ダウトしますか？
+      <small>嘘なら${esc(L.name)}のライフ −${fd}。本当ならあなたのライフ −1（残り${P.life}）</small>`;
+    acts=`<button class="btn danger" data-act="doubt-yes" id="btn-doubt">ダウト！</button><button class="btn" data-act="doubt-no" id="btn-nodoubt">見送る</button>`;
+  }else if(UI.mode==='play'){
+    const cards=selCards(),n=cards.length,d=UI.decl;
+    const need=top?`場は「${declLabel(top.decl)}」×${top.n}。同じ${top.n}枚で、より強い宣言が必要です`:'あなたが親です。好きなカードを出せます';
+    let pv='カードを選んでください。選んだカードの上のボタンで表/伏せを切り替えられます';
+    if(n){
+      const fd=cards.filter(c=>!UI.sel.get(c.id)).length;
+      const lies=cards.filter(c=>!matches(c,d||{v:-1})).length;
+      if(!d)pv=`${n}枚選択中。宣言する数字を選んでください`;
+      else pv=`「${declLabel(d)}」×${n}　伏せ${fd}枚　`+(lies?`<span class="warn">嘘${lies}枚：バレたらライフ −${fd}</span>`:`<span class="good">すべて本当</span>`);
+    }
+    msg=`${need}<small>${UI.msg?`<span class="warn">${UI.msg}</span>`:pv}</small>`;
+    acts=`<button class="btn primary" data-act="play" id="btn-play" ${declOK(d,n)?'':'disabled'}>出す</button>
+      <button class="btn" data-act="pass" id="btn-pass" ${top?'':'disabled'}>パス</button>`;
+    decls=`<div class="decls"><span class="lbl">宣言</span>${DECLS.map(x=>`<button class="dk ${d&&declKey(d)===declKey(x)?'on':''}" data-decl="${declKey(x)}" ${declOK(x,n)?'':'disabled'}>${declLabel(x)}</button>`).join('')}</div>`;
+  }else if(UI.mode==='extra'){
+    const what=UI.decl.v===7?'次の人に渡す':'捨てる';
+    msg=`${UI.decl.v===7?'7渡し':'10捨て'}：${what}カードを${UI.k}枚選んでください（${UI.ex.size}/${UI.k}）<small>ダウトで嘘がバレたら、このカードは手札に戻ります</small>`;
+    acts=`<button class="btn primary" data-act="extra-ok" id="btn-extra" ${UI.ex.size===UI.k?'':'disabled'}>決定して出す</button><button class="btn" data-act="extra-back" id="btn-extra-back">戻る</button>`;
+  }else{
+    if(G.over)msg=NET.mode==='client'?'ゲーム終了。ホストが次のゲームを始めるのを待っています':'ゲーム終了。「新しいゲーム」でもう一度遊べます';
+    else if(!isActive(MY))msg=P.finished?'あなたは上がりました。観戦中…':P.miyako?'都落ちしました。観戦中…':'ライフが尽きました。観戦中…';
+    else if(G.asking!==null&&G.asking!==undefined&&G.asking!==MY)msg=`${esc(G.players[G.asking].name)}がダウトするか考えています…`;
+    else if(G.turn!==null&&G.turn!==undefined&&G.turn!==MY)msg=`${esc(G.players[G.turn].name)}の番です…`;
+    else if(NET.mode==='client'&&!G.over)msg='ホストからの更新を待っています…';
+    else msg='…';
+  }
+  const hand=P.hand.map(c=>{
+    const sel=UI.mode==='play'&&UI.sel.has(c.id);
+    const up=sel?UI.sel.get(c.id):true;
+    const inPlay=UI.mode==='extra'&&UI.playIds.has(c.id);
+    const ex=UI.mode==='extra'&&UI.ex.has(c.id);
+    const can=UI.mode==='play'||(UI.mode==='extra'&&!inPlay);
+    return `<div class="hand-item ${sel?'sel':''} ${inPlay?'inplay':''} ${ex?'ex':''}">
+      ${sel?`<button class="flip ${up?'':'down'}" data-flip="${c.id}" aria-label="${cardName(c)}の表裏を切り替え">${up?'表':'伏せ'}</button>`:''}
+      <button class="hc" data-card="${c.id}" aria-label="${cardName(c)}" aria-pressed="${sel||ex}" ${can?'':'disabled'}>${faceHTML(c)}${sel&&!up?'<span class="veil">伏</span>':''}</button></div>`;
+  }).join('');
+  el.innerHTML=`${bubbleHTML(MY)}
+    <div class="mehead"><span class="nm">${esc(P.name)}${NET.mode==='solo'?'':'（あなた）'}</span>${livesHTML(P.life)}<span class="cnt">手札 ${P.hand.length}</span><span class="tag">${statusOf(MY)}</span></div>
+    <div class="prompt"><div class="msg">${msg}</div><div class="acts">${acts}</div></div>
+    ${decls}
+    <div class="hand">${hand||'<span class="empty">手札はありません</span>'}</div>`;
+}
+
+function computeOrder(){
+  const order=[...G.finishOrder];
+  const why={};
+  G.finishOrder.forEach(i=>why[i]='上がり');
+  if(G.remaining!==null&&G.remaining!==undefined){order.push(G.remaining);why[G.remaining]='最後まで残った';}
+  G.deadOrder.slice().reverse().forEach(i=>{order.push(i);why[i]='ライフ切れ';});
+  G.miyakoOrder.forEach(i=>{order.push(i);why[i]='嘘の上がりで都落ち';});
+  return {order,why};
+}
+function showResult(){
+  const {order,why}=computeOrder();
+  document.getElementById('rank').innerHTML=order.map((i,k)=>`<li><span class="pos">${k+1}位</span><span><b>${esc(G.players[i].name)}</b>${i===MY?'（あなた）':''}　${titleOf(k,order.length)}<br><span class="why">${why[i]}</span></span>${livesHTML(G.players[i].life)}</li>`).join('');
+  document.getElementById('histbox').innerHTML=histHTML();
+  fxEnding(order,why).then(()=>{if(G&&G.over)document.getElementById('result').hidden=false;});
+}
+/* end-of-game record: who lied, who got caught, every play with face-down cards revealed */
+function histHTML(){
+  const H=Array.isArray(G.hist)?G.hist:[];
+  if(!H.length)return '';
+  const name=i=>G.players[i]?esc(G.players[i].name):'?';
+  const chip=(id,up,d)=>{const c=CARD[id];if(!c)return '';const bad=!up&&!matches(c,d);const red=c.suit==='H'||c.suit==='D';
+    return `<span class="cc ${up?'':'dn'} ${bad?'bad':''} ${red&&!bad?'r':''}">${cardName(c)}</span>`;};
+  const st=G.players.map(()=>({plays:0,lies:0,caught:0,dOk:0,dNg:0}));
+  H.forEach(e=>{
+    if(e.f||!st[e.p])return;
+    st[e.p].plays++;if(e.lie)st[e.p].lies++;
+    if(Array.isArray(e.db)&&st[e.db[0]]){if(e.db[1]){st[e.p].caught++;st[e.db[0]].dOk++;}else st[e.db[0]].dNg++;}
+  });
+  const sum=`<table class="hsum"><thead><tr><th>プレイヤー</th><th>出した回数</th><th>嘘</th><th>バレた嘘</th><th>逃げ切った嘘</th><th>ダウト成功</th><th>ダウト失敗</th></tr></thead><tbody>${
+    st.map((s,i)=>`<tr><td>${name(i)}${i===MY?'（あなた）':''}</td><td>${s.plays}</td><td class="${s.lies?'hot':''}">${s.lies}</td><td>${s.caught}</td><td>${s.lies-s.caught}</td><td>${s.dOk}</td><td>${s.dNg}</td></tr>`).join('')}</tbody></table>`;
+  let k=0;
+  const rows=H.map(e=>{
+    if(e.f)return '<li class="hf">場が流れた</li>';
+    k++;
+    const d=declFromKey(e.d);
+    const cards=(e.c||[]).map(([id,up])=>chip(id,up,d)).join('');
+    const hasDown=(e.c||[]).some(x=>!x[1]);
+    let tail=e.lie?'<span class="bdg lie">嘘</span>':hasDown?'<span class="bdg ok">伏せ・本当</span>':'';
+    if(Array.isArray(e.db))tail+=`<span class="dbt">${name(e.db[0])}がダウト → ${e.db[1]?'成功':'失敗'}</span>`;
+    let ex='';
+    if(Array.isArray(e.give))ex=`<span class="exl">${name(e.give[0])}に ${(e.give[1]||[]).map(id=>CARD[id]?cardName(CARD[id]):'').join(' ')} を渡した</span>`;
+    if(Array.isArray(e.disc))ex=`<span class="exl">${e.disc.map(id=>CARD[id]?cardName(CARD[id]):'').join(' ')} を捨てた</span>`;
+    return `<li class="${e.lie?'hl-lie':''}"><span class="hn">${k}</span><span class="hb"><b>${name(e.p)}</b><span>「${declLabel(d)}」×${(e.c||[]).length}</span>${cards}${tail}${ex}</span></li>`;
+  }).join('');
+  return `<h3>嘘の集計</h3><div class="tblwrap">${sum}</div>
+    <h3>試合ログ</h3><p class="muted">点線のカードは伏せて出したもの。赤いカードは宣言と違う（嘘の）カードです。</p>
+    <ol class="hist">${rows}</ol>`;
+}
+
+/* ---------- lobby & online ---------- */
+function getNick(){const v=cleanNick(document.getElementById('nick').value);try{localStorage.setItem('ld-nick',v);}catch(e){}return v;}
+function showLobby(on){document.getElementById('lobby').hidden=!on;}
+function setNetStatus(t){document.getElementById('net-status').textContent=t||'';}
+
+function startSolo(rematch){
+  leaveRoom();
+  NET.mode='solo';
+  const nick=getNick();
+  showLobby(false);
+  newGame([{name:nick==='プレイヤー'?'あなた':nick,ctrl:'local'},...CPU_NAMES.slice(0,getCount()-1).map(n=>({name:n,ctrl:'cpu'}))],true,rematch===true?NET.lastLoser:-1);
+}
+function toLobby(){
+  leaveRoom();
+  NET.mode='solo';
+  if(G)G.token++;
+  document.getElementById('lobby-main').hidden=false;
+  document.getElementById('lobby-table').hidden=true;
+  document.getElementById('result').hidden=true;
+  showLobby(true);
+}
+function leaveRoom(){
+  if(NET.lobbyTimer){clearInterval(NET.lobbyTimer);NET.lobbyTimer=null;}
+  const p=NET.peer;NET.peer=null;
+  try{if(p)p.destroy();}catch(e){}
+  NET.conn=null;NET.conns=new Map();NET.lobby=null;NET.hostGone=false;
+  NET.hostPeer=null;NET.myPeer=null;NET.order=[];NET.seats=[];NET.started=false;NET.answered=-1;
+}
+function hasNet(){return typeof window.Peer==='function';}
+function sendTo(peerId,data){const c=NET.conns.get(peerId);if(c&&c.conn.open){try{c.conn.send(data);}catch(e){}}}
+function randomCode(){const a='abcdefghjkmnpqrstuvwxyz23456789';let s='';for(let i=0;i<4;i++)s+=a[Math.floor(Math.random()*a.length)];return s;}
+
+function createTable(attempt=0){
+  leaveRoom();
+  if(!hasNet()){setNetStatus('通信ライブラリを読み込めませんでした。インターネット接続を確認して、ページを再読み込みしてください。');return;}
+  NET.nick=getNick();
+  const code=randomCode();
+  setNetStatus('接続中…');
+  const peer=new Peer(PREFIX+code);
+  NET.peer=peer;
+  peer.on('open',()=>{
+    if(NET.peer!==peer)return;
+    setNetStatus('');
+    NET.mode='host';NET.code=code;NET.started=false;NET.myPeer=peer.id;NET.size=getCount();NET.spec=null;
+    document.getElementById('lobby-main').hidden=true;
+    document.getElementById('lobby-table').hidden=false;
+    renderLobbyTable();
+    NET.lobbyTimer=setInterval(()=>{if(NET.mode==='host'){hostLobbyEmit();if(NET.started)broadcast();}},3000);
+  });
+  peer.on('connection',conn=>{
+    conn.on('data',d=>onHostData(conn,d));
+    conn.on('close',()=>onHostClose(conn));
+    conn.on('error',()=>onHostClose(conn));
+  });
+  peer.on('disconnected',()=>{if(NET.peer===peer&&!peer.destroyed){try{peer.reconnect();}catch(e){}}});
+  peer.on('error',err=>{
+    if(NET.peer!==peer)return;
+    if(err.type==='unavailable-id'&&attempt<3){createTable(attempt+1);return;}
+    if(NET.mode!=='host')setNetStatus('テーブルを作れませんでした（'+err.type+'）。少し待ってもう一度試してください。');
+    else console.warn(err);
+  });
+}
+function onHostData(conn,d){
+  if(NET.mode!=='host'||!d||typeof d!=='object')return;
+  if(d.t==='hello'){
+    NET.conns.set(conn.peer,{conn,nick:cleanNick(d.nick)});
+    if(!NET.order.includes(conn.peer))NET.order.push(conn.peer);
+    updateSeats();hostLobbyEmit();
+    if(NET.started)broadcast();
+  }else if(d.t==='act'){
+    onRemoteAct({peer:conn.peer,data:d});
+  }
+}
+function onHostClose(conn){
+  const c=NET.conns.get(conn.peer);
+  if(!c||c.conn!==conn)return;
+  NET.conns.delete(conn.peer);
+  if(!NET.started)updateSeats();
+  else if(G){
+    G.players.forEach((P,i)=>{
+      if(P.ctrl==='remote'&&P.peer===conn.peer){
+        P.ctrl='cpu';log(`${nm(i)} が切断したのでCPUが代わります`);
+        if(G.pending&&G.pending.seat===i){
+          const pd=G.pending;G.pending=null;
+          pd.resolve(pd.kind==='doubt'?cpuDoubt(i):cpuAction(i));
+        }
+      }
+    });
+    render();
+  }
+  hostLobbyEmit();
+}
+function updateSeats(){
+  if(NET.started)return;
+  NET.order=NET.order.filter(p=>NET.conns.has(p));
+  NET.seats=NET.order.slice(0,NET.size-1).map(p=>({peer:p,nick:NET.conns.get(p).nick}));
+  renderLobbyTable();
+}
+function hostLobbyEmit(){
+  const data={t:'lobby',code:NET.code,host:NET.nick,size:NET.size,seats:NET.seats.map(s=>({peer:s.peer,nick:s.nick})),started:NET.started?1:0};
+  for(const id of NET.conns.keys())sendTo(id,data);
+}
+function renderLobbyTable(){
+  const box=document.getElementById('lobby-table');
+  if(NET.mode==='host'){
+    const rows=[`<li><span class="sn">席1</span><span>${esc(NET.nick)}（あなた・ホスト）</span></li>`];
+    for(let i=0;i<NET.size-1;i++){const s=NET.seats[i];rows.push(`<li><span class="sn">席${i+2}</span><span>${s?esc(s.nick):'<span class="muted">空席（CPUが入ります）</span>'}</span></li>`);}
+    box.innerHTML=`<h3>テーブルを作りました</h3>
+      <p class="muted">このコードを友達に伝えてください。友達は同じゲームのページ（このHTMLファイルか、公開したURL）を開き、コードを入力して参加します。</p>
+      <p class="code" id="code-show">${esc(NET.code)}</p>
+      <ul class="slots">${rows.join('')}</ul>
+      <div class="row"><button class="btn primary" data-act="start" id="btn-start">ゲーム開始</button><button class="btn" data-act="leave" id="btn-leave">やめる</button></div>`;
+  }else if(NET.mode==='client'){
+    const L=NET.lobby;
+    let body;
+    if(NET.hostGone)body='<p class="muted warn">ホストとの接続が切れました。「退出」してロビーに戻ってください。</p>';
+    else if(!L)body='<p class="muted">ホストを探しています…</p>';
+    else{
+      const rows=[`<li><span class="sn">席1</span><span>${esc(cleanNick(L.host))}（ホスト）</span></li>`];
+      for(let i=0;i<L.size-1;i++){const s=L.seats[i];rows.push(`<li><span class="sn">席${i+2}</span><span>${s?esc(cleanNick(s.nick))+(s.peer===NET.myPeer?'（あなた）':''):'<span class="muted">空席（CPUが入ります）</span>'}</span></li>`);}
+      const inSeat=L.seats.some(s=>s.peer===NET.myPeer);
+      body=`<ul class="slots">${rows.join('')}</ul><p class="muted">${L.started?(inSeat?'ゲームを読み込み中…':'このテーブルはゲーム中か満席です'):(inSeat?'ホストがゲームを開始するのを待っています':'席が空くのを待っています（満席）')}</p>`;
+    }
+    box.innerHTML=`<h3>テーブル ${esc(NET.code)}</h3>${body}<div class="row"><button class="btn" data-act="leave" id="btn-leave">退出</button></div>`;
+  }
+}
+function hostStart(){
+  if(NET.mode!=='host')return;
+  const spec=[{name:NET.nick,ctrl:'local'}];
+  const used=new Set([NET.nick]);
+  const seats=NET.started&&NET.spec?NET.spec.slice(1).map(s=>s):null;
+  if(seats){
+    // rematch: keep connected humans, CPUs fill the rest
+    const live=new Set(NET.conns.keys());
+    seats.forEach((s,i)=>{if(s.ctrl==='remote'&&live.has(s.peer))spec.push({...s});else spec.push({name:CPU_NAMES[i],ctrl:'cpu'});});
+  }else{
+    for(let i=0;i<NET.size-1;i++){
+      const s=NET.seats[i];
+      if(s){let n=s.nick;if(used.has(n))n=n+(i+2);used.add(n);spec.push({name:n,ctrl:'remote',peer:s.peer});}
+      else spec.push({name:CPU_NAMES[i],ctrl:'cpu'});
+    }
+  }
+  NET.spec=spec;NET.started=true;
+  showLobby(false);
+  hostLobbyEmit();
+  newGame(spec,true,seats?NET.lastLoser:-1);
+}
+function remotePending(seat,kind){
+  return ask(new Promise(res=>{G.pending={seat,kind,pid:++NET.pid,resolve:res};render();})).then(v=>{G.pending=null;return v;});
+}
+function onRemoteAct(msg){
+  const d=msg.data,pd=G&&G.pending;
+  if(!pd||!d||typeof d!=='object'||d.pid!==pd.pid)return;
+  const P=G.players[pd.seat];
+  if(P.ctrl!=='remote'||P.peer!==msg.peer)return;
+  const done=v=>{G.pending=null;pd.resolve(v);};
+  const reject=()=>{pd.pid=++NET.pid;render();};
+  if(pd.kind==='doubt'){if(d.type==='doubt')done(!!d.yes);return;}
+  if(d.type==='pass'){if(G.top)done({type:'pass'});else reject();return;}
+  if(d.type==='play'){const a=validatePlay(P,d);if(a)done(a);else reject();}
+}
+function validatePlay(P,d){
+  if(!Array.isArray(d.cards)||!d.cards.length||d.cards.length>8)return null;
+  const ids=new Set(),cards=[];
+  for(const x of d.cards){const c=x&&P.hand.find(h=>h.id===x.id);if(!c||ids.has(c.id))return null;ids.add(c.id);cards.push({card:c,up:!!x.up});}
+  const decl=DECLS.find(z=>declKey(z)===d.decl);
+  if(!decl||!declOK(decl,cards.length))return null;
+  if(cards.some(x=>x.up&&!matches(x.card,decl)))return null;
+  const need=(!decl.spade3&&(decl.v===7||decl.v===10))?Math.min(cards.length,P.hand.length-cards.length):0;
+  const ex=Array.isArray(d.extra)?d.extra:[];
+  if(ex.length!==need)return null;
+  const extra=[];
+  for(const id of ex){const c=P.hand.find(h=>h.id===id);if(!c||ids.has(id))return null;ids.add(id);extra.push(c);}
+  return {type:'play',cards,decl,extra};
+}
+function scheduleBroadcast(){
+  if(NET.bcTimer)return;
+  NET.bcTimer=setTimeout(()=>{NET.bcTimer=null;broadcast();},40);
+}
+function broadcast(){
+  if(NET.mode!=='host'||!G||!NET.started)return;
+  G.players.forEach((P,i)=>{if(P.ctrl==='remote')sendTo(P.peer,{t:'view',v:viewFor(i)});});
+}
+function viewFor(seat){
+  const t=G.top,now=Date.now();
+  const pend=G.pending&&G.pending.seat===seat;
+  const v={me:seat,
+    p:G.players.map(P=>({nm:P.name,l:P.life,n:P.hand.length,f:P.finished?1:0,d:P.dead?1:0,m:P.miyako?1:0,c:P.ctrl==='cpu'?1:0})),
+    h:G.players[seat].hand.map(c=>c.id),
+    top:t?{pl:t.player,d:declKey(t.decl),r:t.revealed?1:0,c:t.cards.map(x=>[(x.up||t.revealed)?x.card.id:0,x.up?1:0])}:null,
+    pile:G.pile.slice(-5,-1).map(x=>[x.player,declKey(x.decl),x.n]),
+    rv:G.revolution?1:0,jb:G.jback?1:0,fo:G.finishOrder,dO:G.deadOrder,mo:G.miyakoOrder,rem:G.remaining,over:G.over?1:0,
+    turn:G.turn,ask:G.asking,st:G.stamp,
+    say:Object.entries(G.say).filter(([,s])=>now-s.t<2500).map(([i,s])=>[+i,s.text,s.hot?1:0,now-s.t]),
+    mode:pend?G.pending.kind:null,pid:pend?G.pending.pid:null,lg:[],
+    hist:G.over?G.hist:null,gid:G.gid};
+  const logs=G.logs.filter(l=>l.to===undefined||l.to===null||l.to===seat).map(l=>[l.text,l.to===seat?1:0,l.id]);
+  v.lg=logs.slice(0,40);
+  return v;
+}
+
+async function joinTable(){
+  const code=String(document.getElementById('code').value||'').trim().toLowerCase();
+  if(!/^[a-z0-9]{3,6}$/.test(code)){setNetStatus('テーブルコードを入力してください（英数字4文字）');return;}
+  leaveRoom();
+  if(!hasNet()){setNetStatus('通信ライブラリを読み込めませんでした。インターネット接続を確認して、ページを再読み込みしてください。');return;}
+  NET.nick=getNick();
+  setNetStatus('接続中…');
+  const peer=new Peer();
+  NET.peer=peer;
+  const timeout=setTimeout(()=>{if(NET.peer===peer&&NET.mode!=='client')setNetStatus('接続に時間がかかっています。コードを確認するか、もう一度試してください。');},12000);
+  peer.on('open',id=>{
+    if(NET.peer!==peer)return;
+    NET.myPeer=id;
+    const conn=peer.connect(PREFIX+code,{reliable:true});
+    NET.conn=conn;
+    conn.on('open',()=>{
+      if(NET.conn!==conn)return;
+      clearTimeout(timeout);
+      setNetStatus('');
+      NET.mode='client';NET.code=code;NET.lobby=null;NET.hostGone=false;NET.hostPeer=conn.peer;NET.answered=-1;NET.resultShown=false;
+      conn.send({t:'hello',nick:NET.nick});
+      document.getElementById('lobby-main').hidden=true;
+      document.getElementById('lobby-table').hidden=false;
+      renderLobbyTable();
+    });
+    conn.on('data',d=>{if(NET.conn===conn)onClientData(d);});
+    conn.on('close',()=>{
+      if(NET.conn!==conn||NET.mode!=='client')return;
+      NET.hostGone=true;NET.lobby=null;
+      if(G&&!G.over){G.over=true;log('ホストとの接続が切れました。ロビーに戻ってください');render();}
+      document.getElementById('result').hidden=true;
+      document.getElementById('lobby-main').hidden=true;
+      document.getElementById('lobby-table').hidden=false;
+      showLobby(true);renderLobbyTable();
+    });
+  });
+  peer.on('error',err=>{
+    if(NET.peer!==peer)return;
+    clearTimeout(timeout);
+    if(NET.mode==='client')return;
+    setNetStatus(err.type==='peer-unavailable'?'そのコードのテーブルが見つかりません。コードを確認してください。':'接続できませんでした（'+err.type+'）。少し待ってもう一度試してください。');
+  });
+}
+function onClientData(d){
+  if(!d||typeof d!=='object')return;
+  if(d.t==='lobby'){
+    if(!Array.isArray(d.seats))return;
+    const size=Math.min(7,Math.max(4,d.size|0||4));
+    NET.lobby={host:String(d.host||''),size,seats:d.seats.slice(0,size-1).map(s=>({peer:String(s&&s.peer||''),nick:String(s&&s.nick||'')})),started:!!d.started};
+    if(document.getElementById('lobby').hidden===false)renderLobbyTable();
+  }else if(d.t==='view'){
+    try{hydrate(d.v);}catch(e){console.error(e);}
+  }
+}
+function sendAct(pid,r){
+  NET.answered=pid;
+  let data;
+  if(typeof r==='boolean')data={t:'act',pid,type:'doubt',yes:r};
+  else if(r.type==='pass')data={t:'act',pid,type:'pass'};
+  else data={t:'act',pid,type:'play',decl:declKey(r.decl),cards:r.cards.map(x=>({id:x.card.id,up:!!x.up})),extra:r.extra.map(c=>c.id)};
+  if(NET.conn&&NET.conn.open){try{NET.conn.send(data);}catch(e){}}
+}
+function hydrate(v){
+  if(!v||!Array.isArray(v.p)||v.p.length<4||v.p.length>7)return;
+  const seat=v.me|0;
+  const players=v.p.map((q,i)=>({i,name:cleanNick(q.nm),life:q.l|0,finished:!!q.f,dead:!!q.d,miyako:!!q.m,ctrl:q.c?'cpu':'remote',
+    hand:i===seat?(v.h||[]).map(id=>CARD[id]).filter(Boolean):Array.from({length:Math.min(q.n|0,53)},()=>({id:'x'}))}));
+  const top=v.top?{player:v.top.pl|0,decl:declFromKey(v.top.d),revealed:!!v.top.r,n:v.top.c.length,cards:v.top.c.map(([id,up])=>({card:CARD[id]||null,up:!!up}))}:null;
+  const prevToken=G?G.token:0;
+  G={token:prevToken,players,top,pile:(v.pile||[]).map(([pl,d,n])=>({player:pl|0,decl:declFromKey(d),n:n|0})),revolution:!!v.rv,jback:!!v.jb,
+     finishOrder:v.fo||[],deadOrder:v.dO||[],miyakoOrder:v.mo||[],remaining:v.rem,over:!!v.over,turn:v.turn,asking:v.ask,
+     stamp:v.st&&typeof v.st.text==='string'?v.st:null,say:{},logs:(v.lg||[]).map(([text,priv,id])=>({text:String(text),to:priv?seat:undefined,id:id|0})),seen:[],passers:new Set(),hist:Array.isArray(v.hist)?v.hist:[],gid:String(v.gid||'')};
+  (v.say||[]).forEach(([i,text,hot,age])=>{G.say[i]={text:String(text),hot:!!hot,t:Date.now()-(age|0)};});
+  MY=seat;
+  if(v.mode&&v.pid!==NET.answered){
+    const same=UI.pid===v.pid&&((v.mode==='play'&&(UI.mode==='play'||UI.mode==='extra'))||(v.mode==='doubt'&&UI.mode==='doubt'));
+    if(!same){
+      const pid=v.pid,resolve=r=>sendAct(pid,r);
+      UI=v.mode==='play'?{mode:'play',sel:new Map(),decl:null,msg:'',pid,resolve}:{mode:'doubt',pid,resolve};
+    }else if(UI.sel){
+      const ids=new Set(me().hand.map(c=>c.id));
+      for(const k of [...UI.sel.keys()])if(!ids.has(k))UI.sel.delete(k);
+    }
+  }else if(!v.mode)UI={mode:'idle'};
+  else UI={mode:'idle'};
+  showLobby(false);
+  render();
+  if(G.over&&!NET.resultShown){NET.resultShown=true;showResult();}
+  if(!G.over&&NET.resultShown){NET.resultShown=false;document.getElementById('result').hidden=true;}
+}
+
+/* ---------- FX: sound, cut-ins, particles, endings ---------- */
+const RM=!!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);
+const FX={gid:null,last:0,lives:[],mode:'idle',topKey:'',q:[],busy:false};
+const COL={};
+(function(){const cs=getComputedStyle(document.documentElement);['brass','ng','ok','paper'].forEach(k=>COL[k]=cs.getPropertyValue('--'+k).trim()||'#d4ab54');})();
+
+/* --- sound: everything is synthesized with WebAudio, no files --- */
+const SFX={ctx:null,out:null,on:true};
+try{if(localStorage.getItem('ld-sfx')==='off')SFX.on=false;}catch(e){}
+function sfxLabel(){const b=document.getElementById('btn-sfx');if(b)b.textContent=SFX.on?'効果音 ON':'効果音 OFF';}
+function ac(){
+  if(!SFX.on)return null;
+  if(!SFX.ctx){
+    try{
+      SFX.ctx=new (window.AudioContext||window.webkitAudioContext)();
+      const comp=SFX.ctx.createDynamicsCompressor();comp.threshold.value=-14;comp.ratio.value=6;
+      const g=SFX.ctx.createGain();g.gain.value=0.9;comp.connect(g).connect(SFX.ctx.destination);SFX.out=comp;
+    }catch(e){SFX.on=false;return null;}
+  }
+  if(SFX.ctx.state==='suspended')SFX.ctx.resume().catch(()=>{});
+  return SFX.ctx;
+}
+document.addEventListener('pointerdown',()=>{ac();},{passive:true});
+function tone(f,dur,o={}){
+  const c=ac();if(!c)return;
+  const t=c.currentTime+(o.delay||0);
+  const os=c.createOscillator(),g=c.createGain();
+  os.type=o.type||'sine';os.frequency.setValueAtTime(f,t);
+  if(o.slide)os.frequency.linearRampToValueAtTime(Math.max(20,f+o.slide),t+dur);
+  if(o.vib){const l=c.createOscillator(),lg=c.createGain();l.frequency.value=o.vib[0];lg.gain.value=o.vib[1];l.connect(lg).connect(os.frequency);l.start(t);l.stop(t+dur+.05);}
+  g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(o.vol||.15,t+.008);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  os.connect(g).connect(SFX.out);os.start(t);os.stop(t+dur+.05);
+}
+function noise(dur,o={}){
+  const c=ac();if(!c)return;
+  const t=c.currentTime+(o.delay||0);
+  const len=Math.max(1,Math.floor(c.sampleRate*dur));
+  const b=c.createBuffer(1,len,c.sampleRate),d=b.getChannelData(0);
+  for(let i=0;i<len;i++)d[i]=Math.random()*2-1;
+  const s=c.createBufferSource();s.buffer=b;
+  const hp=c.createBiquadFilter();hp.type='highpass';hp.frequency.value=o.hp||800;
+  const lp=c.createBiquadFilter();lp.type='lowpass';lp.frequency.value=o.lp||9000;
+  const g=c.createGain();g.gain.setValueAtTime(o.vol||.2,t);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  s.connect(hp).connect(lp).connect(g).connect(SFX.out);s.start(t);s.stop(t+dur+.05);
+}
+const SOUNDS={
+  play:()=>noise(.07,{vol:.28,hp:1800}),
+  down:()=>{noise(.1,{vol:.3,hp:150,lp:1000});tone(85,.16,{vol:.22});},
+  flip:()=>{noise(.05,{vol:.22,hp:2500});noise(.05,{vol:.18,hp:2500,delay:.08});},
+  doubt:()=>{tone(523,.12,{type:'square',vol:.1});tone(392,.32,{type:'sawtooth',vol:.12,delay:.1});noise(.25,{vol:.18,hp:2500});},
+  /* pachinko "kyuiiin": a rising buzzy sweep with vibrato */
+  kyuin:(d=.55)=>{tone(300,d,{type:'square',vol:.07,slide:2600,vib:[18,30]});tone(450,d,{type:'sawtooth',vol:.05,slide:3200,delay:.03});},
+  /* pachinko ball/coin cascade: lots of tiny bright pings */
+  coin:(n=8)=>{for(let i=0;i<n;i++)tone(2200+Math.random()*1800,.09,{type:'triangle',vol:.06,delay:i*.045+Math.random()*.02});},
+  lie:()=>{SOUNDS.kyuin(.5);SOUNDS.coin(12);tone(1568,.35,{type:'square',vol:.06,delay:.5,vib:[14,40]});},
+  truth:()=>{tone(659,.25,{vol:.14});tone(988,.4,{vol:.1,delay:.1});},
+  cut:()=>{noise(.3,{vol:.28,hp:3000});SOUNDS.kyuin(.35);SOUNDS.coin(5);},
+  rev:()=>{tone(55,1.2,{type:'sawtooth',vol:.2,slide:-20});noise(1,{vol:.25,hp:80,lp:600});SOUNDS.kyuin(.9);SOUNDS.coin(10);},
+  skip:()=>{tone(784,.08,{type:'square',vol:.07});tone(1046,.12,{type:'square',vol:.07,delay:.07});},
+  fanfareShort:()=>{[523,659,784,1046].forEach((f,i)=>tone(f,.22,{type:'square',vol:.07,delay:i*.07}));tone(1046,.5,{type:'triangle',vol:.1,delay:.3});},
+  win:()=>{SOUNDS.kyuin(.4);setTimeout(()=>{SOUNDS.fanfareShort();SOUNDS.coin(14);},380);},
+  fanfare:()=>{
+    SOUNDS.kyuin(.7);
+    [523,659,784,1046,784,1046,1318,1568].forEach((f,i)=>tone(f,.18,{type:'square',vol:.07,delay:.7+i*.08}));
+    [1046,1318,1568].forEach(f=>tone(f,1.3,{type:'triangle',vol:.07,delay:1.4}));
+    setTimeout(()=>SOUNDS.coin(20),700);
+  },
+  jackpot:()=>{
+    SOUNDS.kyuin(.9);
+    tone(1600,.5,{type:'square',vol:.05,vib:[12,60],delay:.9});
+    [392,523,659,784,1046,1318,1568,2093].forEach((f,i)=>tone(f,.16,{type:'square',vol:.07,delay:1+i*.07}));
+    [1046,1318,1568,2093].forEach(f=>tone(f,1.8,{type:'triangle',vol:.06,delay:1.6}));
+    for(let r=0;r<5;r++)setTimeout(()=>SOUNDS.coin(14),1100+r*550);
+  },
+  defeat:()=>{
+    [466,440,415,392].forEach((f,i)=>tone(f,i===3?1.3:.38,{type:'sawtooth',vol:.09,delay:i*.42,slide:i===3?-40:0,vib:i===3?[6,8]:null}));
+    tone(50,.9,{vol:.35});noise(.7,{vol:.25,hp:60,lp:400});
+  },
+  out:()=>{tone(220,.6,{type:'sawtooth',vol:.1,slide:-160});noise(.4,{vol:.2,hp:60,lp:500});},
+  /* turn bell: inharmonic partials struck twice, "rin-rin" */
+  bell:()=>{const strike=t=>[[1,.16,1.6],[2.76,.07,1.0],[5.4,.045,.6],[8.93,.025,.35]].forEach(([m,v,d])=>tone(1318*m,d,{vol:v,delay:t}));strike(0);strike(.17);},
+  beat:()=>{tone(65,.14,{vol:.35});tone(65,.14,{vol:.28,delay:.22});},
+  whoosh:()=>noise(.45,{vol:.16,hp:500,lp:3000}),
+  start:()=>{SOUNDS.kyuin(.4);[392,523,784].forEach((f,i)=>tone(f,.2,{type:'square',vol:.07,delay:.4+i*.1}));}
+};
+function sfx(name){if(!SFX.on)return;try{SOUNDS[name]&&SOUNDS[name]();}catch(e){}}
+
+/* --- particles on one full-screen canvas --- */
+const PC={cv:document.getElementById('fx-canvas'),cx:null,parts:[],run:false,w:0,h:0};
+PC.cx=PC.cv.getContext('2d');
+function pcSize(){const d=window.devicePixelRatio||1,w=innerWidth,h=innerHeight;if(PC.w!==w||PC.h!==h){PC.w=w;PC.h=h;PC.cv.width=w*d;PC.cv.height=h*d;PC.cx.setTransform(d,0,0,d,0,0);}}
+function emit(x,y,n,o){
+  if(RM)return;
+  for(let i=0;i<n;i++){
+    const a=(o.angle!==undefined?o.angle:Math.random()*Math.PI*2)+(o.spread?(Math.random()-.5)*o.spread:0);
+    const sp=(o.speed||4)*(0.4+Math.random()*0.8);
+    PC.parts.push({x:x+(o.jx?(Math.random()-.5)*o.jx:0),y:y+(o.jy?(Math.random()-.5)*o.jy:0),vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,
+      g:o.g!==undefined?o.g:.12,life:0,max:(o.life||60)*(0.7+Math.random()*0.6),c:o.colors[Math.floor(Math.random()*o.colors.length)],
+      s:(o.size||4)*(0.6+Math.random()*0.8),rot:Math.random()*6,vr:(Math.random()-.5)*0.3,shape:o.shape||'dot',grow:o.grow||0,drag:o.drag!==undefined?o.drag:.985});
+  }
+  if(PC.parts.length>1200)PC.parts.splice(0,PC.parts.length-1200);
+  if(!PC.run){PC.run=true;requestAnimationFrame(pcStep);}
+}
+function pcStep(){
+  pcSize();const cx=PC.cx;cx.clearRect(0,0,PC.w,PC.h);
+  PC.parts=PC.parts.filter(p=>{
+    p.life++;if(p.life>p.max)return false;
+    p.vx*=p.drag;p.vy=p.vy*p.drag+p.g;p.x+=p.vx;p.y+=p.vy;p.rot+=p.vr;p.s=Math.max(.3,p.s+p.grow);
+    cx.globalAlpha=Math.max(0,1-p.life/p.max);cx.fillStyle=p.c;
+    if(p.shape==='rect'){cx.save();cx.translate(p.x,p.y);cx.rotate(p.rot);cx.fillRect(-p.s,-p.s*.45,p.s*2,p.s*.9);cx.restore();}
+    else if(p.shape==='shard'){cx.save();cx.translate(p.x,p.y);cx.rotate(p.rot);cx.beginPath();cx.moveTo(0,-p.s*1.6);cx.lineTo(p.s,p.s);cx.lineTo(-p.s*.8,p.s*.6);cx.closePath();cx.fill();cx.restore();}
+    else if(p.shape==='spark'){cx.strokeStyle=p.c;cx.lineWidth=Math.max(1,p.s*.5);cx.beginPath();cx.moveTo(p.x,p.y);cx.lineTo(p.x-p.vx*3,p.y-p.vy*3);cx.stroke();}
+    else if(p.shape==='coin'){cx.beginPath();cx.ellipse(p.x,p.y,Math.abs(Math.cos(p.rot))*p.s+.6,p.s,0,0,Math.PI*2);cx.fill();cx.strokeStyle='rgba(120,80,10,.8)';cx.lineWidth=1;cx.stroke();}
+    else{cx.beginPath();cx.arc(p.x,p.y,p.s,0,Math.PI*2);cx.fill();}
+    return true;
+  });
+  cx.globalAlpha=1;
+  if(PC.parts.length)requestAnimationFrame(pcStep);else{PC.run=false;cx.clearRect(0,0,PC.w,PC.h);}
+}
+function centerOf(el){if(!el)return{x:innerWidth/2,y:innerHeight/2};const r=el.getBoundingClientRect();return{x:r.left+r.width/2,y:r.top+r.height/2};}
+const feltC=()=>centerOf(document.getElementById('felt'));
+const seatEl=i=>document.querySelector(`[data-seat="${i}"]`);
+const burstGold=(p,n=70)=>emit(p.x,p.y,n,{colors:[COL.brass,COL.paper,'#fff3c4'],speed:8,shape:'spark',g:.08,life:55});
+const confetti=(n=160)=>emit(innerWidth/2,-10,n,{colors:[COL.brass,COL.ng,COL.ok,COL.paper,'#7fb0ff','#d58bff'],speed:3,angle:Math.PI/2,spread:1.6,jx:innerWidth,shape:'rect',g:.05,life:220,size:5,drag:.995});
+const shards=(p,n=60)=>emit(p.x,p.y,n,{colors:[COL.ng,'#7a1620',COL.paper],speed:9,shape:'shard',g:.25,life:60,size:6});
+const smoke=p=>emit(p.x,p.y,18,{colors:['rgba(200,170,220,.45)','rgba(120,80,130,.45)'],speed:1.2,g:-.02,life:70,size:8,grow:.35,jx:60,jy:20});
+const greenGlow=p=>emit(p.x,p.y,40,{colors:[COL.ok,'#d8ffd9'],speed:4,g:0,life:50,size:3});
+const purple=p=>emit(p.x,p.y,140,{colors:['#b05cff',COL.ng,'#ff9ad5',COL.brass],speed:11,shape:'spark',g:.05,life:70});
+const coinFountain=()=>{emit(innerWidth/2,innerHeight+10,12,{colors:['#ffd36a','#f2b632','#fff0a8'],speed:16,angle:-Math.PI/2,spread:1,g:.38,life:100,size:7,shape:'coin',drag:.995});if(Math.random()<.5)sfx('coin');};
+const ash=()=>emit(Math.random()*innerWidth,-10,4,{colors:['rgba(170,160,160,.7)','rgba(90,70,70,.7)','rgba(150,30,40,.6)'],speed:.7,angle:Math.PI/2,spread:1,g:.015,life:260,size:2.6,drag:.99});
+
+/* --- screen effects --- */
+function flash(color){if(RM)return;const f=document.getElementById('fx-flash');f.style.setProperty('--fc',color);f.classList.remove('on');void f.offsetWidth;f.classList.add('on');}
+function shake(big){if(RM)return;const a=document.querySelector('.app');a.classList.remove('shake-s','shake-l');void a.offsetWidth;a.classList.add(big?'shake-l':'shake-s');setTimeout(()=>a.classList.remove('shake-s','shake-l'),650);}
+function sweep(){const f=document.getElementById('felt');f.classList.remove('sweep');void f.offsetWidth;f.classList.add('sweep');setTimeout(()=>f.classList.remove('sweep'),850);}
+function toast(text,hot){const t=document.getElementById('fx-toast');const d=document.createElement('div');d.className='toast'+(hot?' hot':'');d.textContent=text;t.appendChild(d);setTimeout(()=>d.remove(),1900);}
+function hurt(i,n){
+  const el=seatEl(i),p=centerOf(el);
+  shards(p,30);
+  const d=document.createElement('div');d.className='dmg';d.textContent=`♥ −${n}`;d.style.left=p.x+'px';d.style.top=p.y+'px';
+  document.body.appendChild(d);setTimeout(()=>d.remove(),1450);
+}
+
+/* --- cut-ins: one at a time from a short queue --- */
+function cutin(kind,main,sub,who,small){
+  if(small&&FX.q.length>2)return;
+  if(FX.q.length>5)FX.q.splice(0,FX.q.length-5);
+  FX.q.push({kind,main,sub,who,small});
+  if(!FX.busy)runCutins();
+}
+async function runCutins(){
+  FX.busy=true;
+  const box=document.getElementById('fx-cutin');
+  while(FX.q.length){
+    const c=FX.q.shift();
+    const idx=c.who?G.players.findIndex(p=>p.name===c.who):-1;
+    const you=idx>=0&&idx===MY;
+    const emb=c.who?`<span class="ci-emb" style="--h:${(Math.max(0,idx)*51)%360}">${esc([...c.who][0]||'?')}</span>`:'';
+    box.innerHTML=`<div class="ci ci-${c.kind} ${c.small?'ci-small':''} ${you?'ci-you':''}"><div class="ci-bar t"></div><div class="ci-bar b"></div>
+      <div class="ci-band" style="transform:rotate(-6deg)"><div class="ci-lines"></div><div class="ci-inner">${emb}<div class="ci-txt"><div class="ci-main">${esc(c.main)}</div>${c.sub?`<div class="ci-sub">${esc(c.sub)}</div>`:''}</div></div></div></div>`;
+    await sleep(c.small?800:1250);
+    const el=box.firstElementChild;if(el)el.classList.add('out');
+    await sleep(220);
+    box.innerHTML='';
+  }
+  FX.busy=false;
+}
+
+/* --- map game log lines to effects; works for host, solo and joined players alike --- */
+function fxFromLog(t){
+  const names=[...t.matchAll(/⟦(.*?)⟧/g)].map(m=>m[1]);
+  const fc=feltC();
+  if(/^新しいゲーム/.test(t)){const m=t.match(/（(\d+)人）/);cutin('start','GAME START',m?`${m[1]}人対戦`:'');sfx('start');return;}
+  if(/にダウト！/.test(t)){cutin('doubt','ダウト！',`${names[0]} → ${names[1]}`,names[0]);sfx('doubt');shake(false);return;}
+  if(/^公開：/.test(t)){sfx('flip');return;}
+  if(/^嘘だった！/.test(t)){cutin('lie','嘘！',`${names[0]} の嘘がバレた`,names[0]);sfx('lie');shake(true);flash('#ee4b3a');shards(fc,90);return;}
+  if(/^本当だった/.test(t)){cutin('truth','本当',`${names[0]} のダウト失敗`,names[0]);sfx('truth');greenGlow(fc);return;}
+  if(/^8切り/.test(t)){cutin('cut','8切り','場が流れる');sfx('cut');flash('#ffffff');burstGold(fc,90);sweep();return;}
+  if(/^スペ3返し/.test(t)){cutin('cut','♠3返し','JOKERを討ち取った');sfx('cut');flash('#ffffff');burstGold(fc,90);sweep();return;}
+  if(/^革命！/.test(t)){cutin('rev','革命',/逆転/.test(t)?'強さが逆転する':'強さが元に戻る');sfx('rev');shake(true);flash('#a43cd6');purple(fc);return;}
+  if(/^Jバック：/.test(t)){cutin('jback','Jバック','場が流れるまで逆転',null,true);sfx('skip');return;}
+  if(/^5スキップ/.test(t)){cutin('skip','スキップ',`${names.join('・')} を飛ばす`,null,true);sfx('skip');return;}
+  if(/^7渡し/.test(t)){cutin('skip','7渡し',`${names[0]} → ${names[1]}`,names[0],true);sfx('skip');return;}
+  if(/^10捨て/.test(t)){cutin('skip','10捨て',names[0]||'',names[0],true);sfx('skip');return;}
+  if(/手札を出し切った/.test(t)){const w=/ダウト待ち/.test(t);cutin('win',w?'上がり…？':'上がり！',w?`${names[0]}（ダウト待ち）`:names[0],names[0]);sfx('win');confetti(w?60:120);burstGold(fc,70);return;}
+  if(/都落ち/.test(t)){cutin('out','都落ち',names[0],names[0]);sfx('out');shake(true);return;}
+  if(/ライフが尽きて敗北/.test(t)){cutin('out','脱落',names[0],names[0]);sfx('out');shake(true);flash('#330000');return;}
+  if(/手番終了/.test(t)){toast(`${names[0]} 手番終了`,true);return;}
+  if(/切断/.test(t)){toast(`${names[0]} が切断`,true);return;}
+  if(/場が流れた/.test(t)){sfx('whoosh');sweep();return;}
+  if(/: 「/.test(t)){
+    if(/伏せ/.test(t)){sfx('down');smoke(fc);}
+    else{sfx('play');emit(fc.x,fc.y,16,{colors:[COL.brass,COL.paper],speed:4,shape:'spark',g:.05,life:30});}
+  }
+}
+function fxAfterRender(){
+  if(!G)return;
+  document.body.classList.toggle('rev',!!G.revolution);
+  document.body.classList.toggle('jb',!!G.jback);
+  const maxId=G.logs.reduce((m,l)=>Math.max(m,l.id||0),0);
+  if(G.gid!==FX.gid){
+    FX.gid=G.gid;FX.lives=G.players.map(p=>p.life);FX.mode=UI.mode;
+    FX.last=maxId>6?maxId:0;            /* joined mid-game: don't replay old events */
+    const end=document.getElementById('fx-end');end.hidden=true;end.innerHTML='';
+  }
+  if(!document.getElementById('lobby').hidden){FX.last=maxId;FX.mode=UI.mode;return;}
+  const fresh=G.logs.filter(l=>(l.id||0)>FX.last&&(l.to===undefined||l.to===null||l.to===MY)).sort((a,b)=>a.id-b.id);
+  if(maxId>FX.last)FX.last=maxId;
+  fresh.forEach(l=>{try{fxFromLog(l.text);}catch(e){}});
+  G.players.forEach((P,i)=>{const prev=FX.lives[i];if(typeof prev==='number'&&P.life<prev)hurt(i,prev-P.life);FX.lives[i]=P.life;});
+  if(UI.mode!==FX.mode){
+    if(UI.mode==='play'&&FX.mode!=='extra'){toast('あなたの番');sfx('bell');}
+    if(UI.mode==='doubt'){toast('ダウトチャンス！',true);sfx('beat');}
+    FX.mode=UI.mode;
+  }
+}
+
+/* --- endings: win (rainbow + coins + jackpot fanfare) or lose (falling title + ash + sad horns) --- */
+function fxEnding(order,why){
+  return new Promise(res=>{
+    const k=order.indexOf(MY),reason=why[MY];
+    if(k<0){res();return;}
+    const n=order.length,win=reason==='上がり',big=win&&k===0;
+    const el=document.getElementById('fx-end');
+    const main=win?(big?'大勝利':'勝利'):'敗北';
+    const sub=win?(big?'嘘も真実も、すべてを制した':'見事に上がった')
+      :reason==='ライフ切れ'?'ライフが尽きた':reason==='嘘の上がりで都落ち'?'嘘がバレて都落ち':'最後まで手札が残った';
+    el.className=win?'win':'lose';
+    el.innerHTML=`${win?'<div class="rays"></div>':''}<div class="end-stack"><div class="end-rank">${k+1}位　${titleOf(k,n)}</div><div class="end-main">${main}</div><div class="end-sub">${esc(sub)}</div></div><div class="end-hint">タップで結果へ</div>`;
+    el.hidden=false;
+    let done=false,iv=null;
+    const finish=()=>{if(done)return;done=true;clearInterval(iv);el.hidden=true;el.innerHTML='';res();};
+    el.onclick=finish;
+    if(win){
+      sfx(big?'jackpot':'fanfare');flash('#fff3c4');
+      confetti(big?280:160);burstGold({x:innerWidth/2,y:innerHeight/2},big?180:100);
+      iv=setInterval(coinFountain,big?240:420);
+    }else{
+      sfx('defeat');setTimeout(()=>{shake(true);flash('#330000');},700);
+      iv=setInterval(ash,160);
+    }
+    setTimeout(finish,RM?1500:(big?5600:win?4300:4000));
+  });
+}
+sfxLabel();
+
+/* ---------- boot ---------- */
+try{const n=localStorage.getItem('ld-nick');if(n)document.getElementById('nick').value=n;}catch(e){}
+newGame([{name:'あなた',ctrl:'local'},...CPU_NAMES.slice(0,3).map(n=>({name:n,ctrl:'cpu'}))],false);
+if(!hasNet()){
+  ['btn-create','btn-join'].forEach(id=>document.getElementById(id).disabled=true);
+  setNetStatus('通信ライブラリを読み込めませんでした。インターネットにつないでページを再読み込みしてください。「ひとりで遊ぶ」は使えます。');
+}
+</script>
+</body>
+</html>
